@@ -1,0 +1,9 @@
+#!/bin/bash
+#To enable, run: export PATH="$PATH:/Users/teggers/hayley/CSM"
+INSTALLDIR=/Users/teggers/hayley/CSM
+DATE=$(date +%Y_%m_%d_h%Hm%M)
+#Create folder based on date:
+mkdir -p $DATE
+cd $DATE
+cp $INSTALLDIR/params.py.dist ./params.py
+ln -s $INSTALLDIR/CSM.py ./CSM.py
