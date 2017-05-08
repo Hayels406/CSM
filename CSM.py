@@ -254,12 +254,12 @@ while data['t'][itime] < TF:
 
 
 #save as matlab .mat file
-import scipy.io
-
-x = np.linspace(0, 2 * np.pi, 100)
-y = np.cos(x)
-
-scipy.io.savemat('test.mat', dict(x=x, y=y))
+#import scipy.io
+#
+#x = np.linspace(0, 2 * np.pi, 100)
+#y = np.cos(x)
+#
+#scipy.io.savemat('test.mat', dict(x=x, y=y))
 
 
 
