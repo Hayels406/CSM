@@ -2,7 +2,8 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 import sys
-import json
+import h5py
+
 sys.dont_write_bytecode = True
 sys.path.insert(0, '.')
 from params import *
@@ -18,19 +19,19 @@ def init():
 	#Sets up main data structure
 	#Returns: dictionary of simulation data
 	data = dict()
-	data['cachedTimesteps'] = 10*int(round(TF/dt))
-	data['dog'] = np.zeros((data['cachedTimesteps'], 2))
-	data['sheep'] = np.zeros((data['cachedTimesteps'],NP, 2))
-	data['sheepVel'] = np.zeros((data['cachedTimesteps'],NP,2))
-	data['dogVel'] = np.zeros((data['cachedTimesteps'],2))
+	cachedTimesteps = 3*int(round(TF/dt))
+	data['dog'] = np.zeros((cachedTimesteps, 2))
+	data['sheep'] = np.zeros((cachedTimesteps,NP, 2))
+	data['sheepVel'] = np.zeros((cachedTimesteps,NP,2))
+	data['dogVel'] = np.zeros((cachedTimesteps,2))
 
-	data['dist_id'] = np.zeros((data['cachedTimesteps'],NP))
+	data['dist_id'] = np.zeros((cachedTimesteps,NP))
 	data['dist_ij'] = dict()
-	data['dist_ij']['min'] = np.zeros(data['cachedTimesteps'])
-	data['dist_ij']['max'] = np.zeros(data['cachedTimesteps'])
-	data['dist_ij']['mean'] = np.zeros(data['cachedTimesteps'])
+	data['dist_ij']['min'] = np.zeros(cachedTimesteps)
+	data['dist_ij']['max'] = np.zeros(cachedTimesteps)
+	data['dist_ij']['mean'] = np.zeros(cachedTimesteps)
 
-	data['t'] = np.zeros(data['cachedTimesteps'])
+	data['t'] = np.zeros(cachedTimesteps)
 
 	if timeStepMethod == 'Adaptive':
 		data['q'] = []
@@ -39,23 +40,23 @@ def init():
 
 	if wallType == 'Square' :
 		data['walls'] = makeSquareWalls(wallTop,wallBottom,wallLeft,wallRight)
-		data['dist_iw'] = np.zeros((data['cachedTimesteps'],NP,4))
-		data['forceWalls'] = np.zeros((data['cachedTimesteps'],NP,2))
-		data['dist_dw'] = np.zeros((data['cachedTimesteps'],4))
+		data['dist_iw'] = np.zeros((cachedTimesteps,NP,4))
+		data['forceWalls'] = np.zeros((cachedTimesteps,NP,2))
+		data['dist_dw'] = np.zeros((cachedTimesteps,4))
 	else:
 		data['walls'] = []
 
 	if updateMethod == 'Velocity':
-		data['bterm'] = np.zeros((data['cachedTimesteps'],NP,2))
-		data['aterm'] = np.zeros((data['cachedTimesteps'],NP,2))
+		data['bterm'] = np.zeros((cachedTimesteps,NP,2))
+		data['aterm'] = np.zeros((cachedTimesteps,NP,2))
 	elif updateMethod == 'Acceleration':
-		data['sheepAccFlocking'] = np.zeros((data['cachedTimesteps'],NP,2))
-		data['sheepAccFlight'] = np.zeros((data['cachedTimesteps'],NP,2))
-		data['sheepAcc'] = np.zeros((data['cachedTimesteps'],NP,2))
-		data['dogAcc'] = np.zeros((data['cachedTimesteps'],2))
-		data['Gfunc'] = np.zeros((data['cachedTimesteps'],NP,2))
-		data['Hfunc'] = np.zeros((data['cachedTimesteps'],NP,2))
-		data['Ffunc'] = np.zeros((data['cachedTimesteps'],NP,2))
+		data['sheepAccFlocking'] = np.zeros((cachedTimesteps,NP,2))
+		data['sheepAccFlight'] = np.zeros((cachedTimesteps,NP,2))
+		data['sheepAcc'] = np.zeros((cachedTimesteps,NP,2))
+		data['dogAcc'] = np.zeros((cachedTimesteps,2))
+		data['Gfunc'] = np.zeros((cachedTimesteps,NP,2))
+		data['Hfunc'] = np.zeros((cachedTimesteps,NP,2))
+		data['Ffunc'] = np.zeros((cachedTimesteps,NP,2))
 	else:
 		sys.exit("Error: updateMethod not recognized!")
 
@@ -203,7 +204,7 @@ def doAccelerationStep(data):
 
 
 
-def initPlot(data, save = 'Off'):
+def initPlot(data):
 	plt.figure()
 	dogTheta = np.zeros(1)
 	sheepTheta = np.zeros(1)
@@ -218,11 +219,11 @@ def initPlot(data, save = 'Off'):
 		plt.axvline(wallLeft, color = 'r', lw = 5)
 		plt.axvline(wallRight, color = 'r', lw = 5)
 	plt.pause(0.005)
-	if save == 'On':
+	if savePlotPng == 'On':
 		plt.savefig(str(0).zfill(7)+'.png')
 	return dogQuiver, sheepQuiver
 
-def plotDataPositions(data, save = 'Off'):
+def plotDataPositions(data):
 	dogTheta = np.arctan2(data['dogVel'][itime-1,1], data['dogVel'][itime-1,0])
 	sheepTheta = np.arctan2(data['sheepVel'][itime-1,:,1], data['sheepVel'][itime-1,:,0])
 	dogQuiver.set_offsets(np.transpose([data['dog'][itime, 0], data['dog'][itime, 1]]))
@@ -230,8 +231,68 @@ def plotDataPositions(data, save = 'Off'):
 	sheepQuiver.set_offsets(np.transpose([data['sheep'][itime,:, 0], data['sheep'][itime,:, 1]]))
 	sheepQuiver.set_UVC(np.cos(sheepTheta), np.sin(sheepTheta))
 	plt.pause(0.005)
-	if save == 'On':
+	if savePlotPng == 'On':
 		plt.savefig(str(itime).zfill(7)+'.png')
+
+
+def saveData(data):
+	h5f = h5py.File('data-%07d.h5'%itime, 'w')
+	for k in data.keys():
+		if type(data[k]) is dict:
+			for k2 in data[k].keys():
+				try:
+					h5f.create_dataset(k+'-'+k2, data=data[k][k2],compression="gzip")
+				except:
+					h5f.create_dataset(k+'-'+k2, data=data[k][k2])
+		else:
+			try:
+				h5f.create_dataset(k, data=data[k],compression="gzip")
+			except:
+				h5f.create_dataset(k+'-'+k2, data=data[k][k2])
+	h5f.close()
+
+def loadData(data,it):
+	h5f = h5py.File('data-%07d.h5'%it,'r')
+	data['dog'] = h5f['dog']
+	data['sheep'] = h5f['sheep']
+	data['sheepVel'] = h5f['sheepVel']
+	data['dogVel'] = h5f['dogVel']
+
+	data['dist_id'] = h5f['dist_id']
+	data['dist_ij'] = dict()
+	data['dist_ij']['min'] = h5f['dist_ij-min']
+	data['dist_ij']['max'] = h5f['dist_ij-max']
+	data['dist_ij']['mean'] = h5f['dist_ij-mean']
+
+	data['t'] = h5f['t']
+
+	if timeStepMethod == 'Adaptive':
+		data['q'] = h5f['q']
+	elif timeStepMethod != 'Euler':
+		sys.exit("Error: updateMethod not recognized!")
+
+	if wallType == 'Square' :
+		data['walls']['eqn'] = h5f['walls-eqn']
+		data['walls']['eqn'] = h5f['walls-n']
+		data['dist_iw'] = h5f['dist_iw']
+		data['forceWalls'] = h5f['forcewalls']
+		data['dist_dw'] = h5f['dist_dw']
+	else:
+		data['walls'] = []
+
+	if updateMethod == 'Velocity':
+		data['bterm'] = h5f['bterm']
+		data['aterm'] = h5f['aterm']
+	elif updateMethod == 'Acceleration':
+		data['sheepAccFlocking'] = h5f['sheepAccFlocking']
+		data['sheepAccFlight'] = h5f['sheepAccFlight']
+		data['sheepAcc'] = h5f['sheepAcc']
+		data['dogAcc'] = h5f['dogAcc']
+		data['Gfunc'] = h5f['Gfunc']
+		data['Hfunc'] = h5f['Hfunc']
+		data['Ffunc'] = h5f['Ffunc']
+	else:
+		sys.exit("Error: updateMethod not recognized!")
 
 ###############
 #Simulation
@@ -239,7 +300,7 @@ def plotDataPositions(data, save = 'Off'):
 plt.close()
 data = init()
 initCond(data)
-dogQuiver, sheepQuiver = initPlot(data, save = 'On')
+dogQuiver, sheepQuiver = initPlot(data)
 itime = 0
 lastSnapshot = 0
 lastPlot = 0
@@ -247,12 +308,12 @@ lastPlot = 0
 while data['t'][itime] < TF:
 	if data['t'][itime]-lastPlot > plotPeriod:
 		print data['t'][itime]
-		plotDataPositions(data, save = 'On')
+		plotDataPositions(data)
 		lastPlot = data['t'][itime]
 
 	if data['t'][itime]-lastSnapshot > snapshotPeriod:
-		np.save('%d.npy'%itime,data)
-		print "Saving at"+str(data['t'][itime])
+		saveData(data)
+		print "Saving at "+str(data['t'][itime])
 		lastSnapshot = data['t'][itime]
 
 	if updateMethod == 'Velocity':

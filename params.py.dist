@@ -19,6 +19,8 @@ wallTop = 20
 
 snapshotPeriod = 200.0 #units of time
 plotPeriod = 2.0 #units of time
+savePlotPng = 'Off'
+
 
 dog_init = np.array([2., 2.])		#np.random.rand(2)*3.0+1.
 sheep_init = np.array([6. ,4.])		#np.random.rand(2)*3.0 + 3.
