@@ -7,6 +7,7 @@ import h5py
 sys.dont_write_bytecode = True
 sys.path.insert(0, '.')
 from params import *
+from scipy.spatial.distance import cdist
 
 def makeSquareWalls(wallTop,wallBottom,wallLeft,wallRight):
 	#Walls defined by four lines: Ax+By+C = 0
@@ -19,7 +20,7 @@ def init():
 	#Sets up main data structure
 	#Returns: dictionary of simulation data
 	data = dict()
-	cachedTimesteps = 3*int(round(TF/dt))
+	cachedTimesteps = 5*int(round(TF/dt))
 	data['dog'] = np.zeros((cachedTimesteps, 2))
 	data['sheep'] = np.zeros((cachedTimesteps,NP, 2))
 	data['sheepVel'] = np.zeros((cachedTimesteps,NP,2))
@@ -43,6 +44,7 @@ def init():
 		data['dist_iw'] = np.zeros((cachedTimesteps,NP,4))
 		data['forceWalls'] = np.zeros((cachedTimesteps,NP,2))
 		data['dist_dw'] = np.zeros((cachedTimesteps,4))
+		data['forceSheep'] = np.zeros((cachedTimesteps, NP, 2))
 	else:
 		data['walls'] = []
 
@@ -66,9 +68,9 @@ def init():
 def initCond(data):
 	data['dog'][0] = np.array(dog_init)
 	data['dogVel'][0] = np.array(dog_vel_init)
-	data['sheep'][0] = np.random.rand(NP,2)*3
+	data['sheep'][0] = 2*np.array([[x,y] for x in np.arange(0.,np.ceil(np.sqrt(NP)),1.) for y in np.arange(0.,np.ceil(np.sqrt(NP)),1.)])[0:NP]#np.random.rand(NP,2)*3
 	#data['sheep'][0][0] = np.array(sheep_init)
-	data['sheepVel'][0][0] = np.array(sheep_vel_init)
+	data['sheepVel'][0] = np.array(sheep_vel_init)
 
 
 ###############
@@ -149,8 +151,26 @@ def doAccelerationStep(data):
 		data['forceWalls'][itime,:,0] += A*np.exp((sheepSize - data['dist_iw'][itime,:,wall])/B)*data['walls']['n'][wall][0]
 		data['forceWalls'][itime,:,1] += A*np.exp((sheepSize - data['dist_iw'][itime,:,wall])/B)*data['walls']['n'][wall][1]
 
+	dist_ij = cdist(data['sheep'][itime], data['sheep'][itime])
+	#data['dist_ij']['max'][itime] = max(dist_ij)
+	#data['dist_ij']['min'][itime] = min(dist_ij)
+	#data['dist_ij']['mean'][itime] = np.mean(dist_ij)
+
+	#f_ij = np.zeros((NP, NP, 2))
+	#for i in range(NP-1):
+	#	f_ij[i, 1+i:, :] = map(lambda j: A*np.exp((sheepSize*2 - dist_ij[i,j])/B)*(data['sheep'][itime][i] - data['sheep'][itime][j])/dist_ij[i,j], range(i+1, NP))
+
+	#data['forceSheep'][itime] = (-np.transpose(f_ij, axes=(1, 0, 2)) + f_ij).sum(axis = 1)
+	#print data['forceSheep'][itime]
+
+	#print np.array(map(lambda i:np.array(map(lambda j: A*np.exp((sheepSize*2 - dist_ij[i,j])/B)*(data['sheep'][itime][i] - data['sheep'][itime][j])/dist_ij[i,j], np.delete(range(NP), i, 0))).sum(axis = 0),range(NP)))
+	data['forceSheep'][itime] = np.array(map(lambda i: np.nansum(np.fromfunction(lambda j,k: A*np.exp((sheepSize*2 - dist_ij[i,j])/B)*(data['sheep'][itime][i,k] - data['sheep'][itime][j,k])/dist_ij[i,j],(NP,2),dtype=int),axis=0),range(NP)))
+	#print data['forceSheep'][itime]
+	#print np.shape(np.transpose(data['forceSheep'][itime]))
+	#data['forceSheep'][itime] = data['forceSheep'][itime] + np.transpose(data['forceSheep'][itime])
+
 	if len(data['walls'])>0:
-		data['sheepAcc'][itime] += data['forceWalls'][itime]
+		data['sheepAcc'][itime] += data['forceWalls'][itime]/60. + data['forceSheep'][itime]/60.
 
 	if timeStepMethod == 'Euler':
 		#Euler time step
@@ -248,66 +268,85 @@ def saveData(data):
 			try:
 				h5f.create_dataset(k, data=data[k],compression="gzip")
 			except:
-				h5f.create_dataset(k+'-'+k2, data=data[k][k2])
+				h5f.create_dataset(k, data=data[k])
 	h5f.close()
 
-def loadData(data,it):
-	h5f = h5py.File('data-%07d.h5'%it,'r')
-	data['dog'] = h5f['dog']
-	data['sheep'] = h5f['sheep']
-	data['sheepVel'] = h5f['sheepVel']
-	data['dogVel'] = h5f['dogVel']
+def loadData(data,fn):
+	h5f = h5py.File(fn,'r')
+	itime = int(fn[5:-3])
+	data['dog'] = np.copy(h5f['dog'])
+	data['sheep'] = np.copy(h5f['sheep'])
+	data['sheepVel'] = np.copy(h5f['sheepVel'])
+	data['dogVel'] = np.copy(h5f['dogVel'])
 
-	data['dist_id'] = h5f['dist_id']
+	data['dist_id'] = np.copy(h5f['dist_id'])
 	data['dist_ij'] = dict()
-	data['dist_ij']['min'] = h5f['dist_ij-min']
-	data['dist_ij']['max'] = h5f['dist_ij-max']
-	data['dist_ij']['mean'] = h5f['dist_ij-mean']
+	data['dist_ij']['min'] = np.copy(h5f['dist_ij-min'])
+	data['dist_ij']['max'] = np.copy(h5f['dist_ij-max'])
+	data['dist_ij']['mean'] = np.copy(h5f['dist_ij-mean'])
 
-	data['t'] = h5f['t']
+	data['t'] = np.copy(h5f['t'])
 
 	if timeStepMethod == 'Adaptive':
-		data['q'] = h5f['q']
+		data['q'] = np.copy(h5f['q']).tolist()
 	elif timeStepMethod != 'Euler':
 		sys.exit("Error: updateMethod not recognized!")
 
 	if wallType == 'Square' :
-		data['walls']['eqn'] = h5f['walls-eqn']
-		data['walls']['eqn'] = h5f['walls-n']
-		data['dist_iw'] = h5f['dist_iw']
-		data['forceWalls'] = h5f['forcewalls']
-		data['dist_dw'] = h5f['dist_dw']
+		data['walls']['eqn'] = np.copy(h5f['walls-eqn'])
+		data['walls']['n'] = np.copy(h5f['walls-n'])
+		data['dist_iw'] = np.copy(h5f['dist_iw'])
+		data['forceWalls'] = np.copy(h5f['forceWalls'])
+		data['dist_dw'] = np.copy(h5f['dist_dw'])
 	else:
 		data['walls'] = []
 
 	if updateMethod == 'Velocity':
-		data['bterm'] = h5f['bterm']
-		data['aterm'] = h5f['aterm']
+		data['bterm'] = np.copy(h5f['bterm'])
+		data['aterm'] = np.copy(h5f['aterm'])
 	elif updateMethod == 'Acceleration':
-		data['sheepAccFlocking'] = h5f['sheepAccFlocking']
-		data['sheepAccFlight'] = h5f['sheepAccFlight']
-		data['sheepAcc'] = h5f['sheepAcc']
-		data['dogAcc'] = h5f['dogAcc']
-		data['Gfunc'] = h5f['Gfunc']
-		data['Hfunc'] = h5f['Hfunc']
-		data['Ffunc'] = h5f['Ffunc']
+		data['sheepAccFlocking'] = np.copy(h5f['sheepAccFlocking'])
+		data['sheepAccFlight'] = np.copy(h5f['sheepAccFlight'])
+		data['sheepAcc'] = np.copy(h5f['sheepAcc'])
+		data['dogAcc'] = np.copy(h5f['dogAcc'])
+		data['Gfunc'] = np.copy(h5f['Gfunc'])
+		data['Hfunc'] = np.copy(h5f['Hfunc'])
+		data['Ffunc'] = np.copy(h5f['Ffunc'])
 	else:
 		sys.exit("Error: updateMethod not recognized!")
+	return itime
+
+def wipeData(data):
+	for k in data.keys():
+		if k != 'walls':
+			if k=='q':
+				data['q'] = [data['q'][-1]]
+			elif type(data[k]) is dict:
+				for k2 in data[k].keys():
+					data[k][k2][0:5] = data[k][k2][itime-4:itime+1]
+					data[k][k2][5:] = data[k][k2][5:]*0
+			else:
+				data[k][0:5] = data[k][itime-4:itime+1]
+				data[k][5:] = data[k][5:]*0
+
 
 ###############
 #Simulation
 ###############
 plt.close()
 data = init()
-initCond(data)
-dogQuiver, sheepQuiver = initPlot(data)
 itime = 0
-lastSnapshot = 0
-lastPlot = 0
+initCond(data)
+if loadFromFile == 'On':
+	itime = loadData(data,fileName)
+dogQuiver, sheepQuiver = initPlot(data)
+lastSnapshot = data['t'][itime]
+lastPlot = data['t'][itime]
 
 while data['t'][itime] < TF:
 	if data['t'][itime]-lastPlot > plotPeriod:
 		print data['t'][itime]
+		print itime
 		plotDataPositions(data)
 		lastPlot = data['t'][itime]
 
@@ -315,6 +354,8 @@ while data['t'][itime] < TF:
 		saveData(data)
 		print "Saving at "+str(data['t'][itime])
 		lastSnapshot = data['t'][itime]
+		wipeData(data)
+		itime = 4
 
 	if updateMethod == 'Velocity':
 		doVelocityStep(data)
