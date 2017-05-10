@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 import json
 sys.dont_write_bytecode = True
-sys.path.insert(0, '')
+sys.path.insert(0, '.')
 from params import *
 
 def makeSquareWalls(wallTop,wallBottom,wallLeft,wallRight):
@@ -12,7 +12,7 @@ def makeSquareWalls(wallTop,wallBottom,wallLeft,wallRight):
 	w = dict()
 	w['eqn'] = [[0,1,-wallTop],[0,1,-wallBottom],[1,0,-wallLeft],[1,0,-wallRight]]
 	w['n'] = [np.array([0,-1]),np.array([0,1]),np.array([1,0]),np.array([-1,0])]
-	return w 
+	return w
 
 def init():
 	#Sets up main data structure
@@ -31,7 +31,7 @@ def init():
 	data['dist_ij']['mean'] = np.zeros(data['cachedTimesteps'])
 
 	data['t'] = np.zeros(data['cachedTimesteps'])
-	
+
 	if timeStepMethod == 'Adaptive':
 		data['q'] = []
 	elif timeStepMethod != 'Euler':
@@ -59,14 +59,14 @@ def init():
 	else:
 		sys.exit("Error: updateMethod not recognized!")
 
-	
+
 	return data
 
 def initCond(data):
 	data['dog'][0] = np.array(dog_init)
 	data['dogVel'][0] = np.array(dog_vel_init)
 	data['sheep'][0] = np.random.rand(NP,2)*3
-	data['sheep'][0][0] = np.array(sheep_init)
+	#data['sheep'][0][0] = np.array(sheep_init)
 	data['sheepVel'][0][0] = np.array(sheep_vel_init)
 
 
@@ -135,7 +135,7 @@ def doAccelerationStep(data):
 	data['sheepAccFlocking'][itime] = 1./NP*((normStuff**(-1) - a*normStuff)*distMatrixNotMe*(normStuff**(-1))).sum(axis=1)
 	data['sheepAccFlight'][itime] = data['Gfunc'][itime]*preyMinusPred*(normStuff2**(-1))
 	data['sheepAcc'][itime] = -data['sheepVel'][itime] + data['sheepAccFlight'][itime]+ data['sheepAccFlocking'][itime]
-	
+
 	#Acceleration of dog
 	predMinusPrey = -(data['dog'][itime] - data['sheep'][itime])
 	normStuff3 = np.transpose(np.tile(np.linalg.norm(predMinusPrey,axis=1),(2,1)))
@@ -149,7 +149,7 @@ def doAccelerationStep(data):
 		data['forceWalls'][itime,:,1] += A*np.exp((sheepSize - data['dist_iw'][itime,:,wall])/B)*data['walls']['n'][wall][1]
 
 	if len(data['walls'])>0:
-		data['sheepAcc'][itime] += data['forceWalls'][itime] 
+		data['sheepAcc'][itime] += data['forceWalls'][itime]
 
 	if timeStepMethod == 'Euler':
 		#Euler time step
@@ -203,7 +203,7 @@ def doAccelerationStep(data):
 
 
 
-def initPlot(data):
+def initPlot(data, save = 'Off'):
 	plt.figure()
 	dogTheta = np.zeros(1)
 	sheepTheta = np.zeros(1)
@@ -218,9 +218,11 @@ def initPlot(data):
 		plt.axvline(wallLeft, color = 'r', lw = 5)
 		plt.axvline(wallRight, color = 'r', lw = 5)
 	plt.pause(0.005)
+	if save == 'On':
+		plt.savefig(str(0).zfill(7)+'.png')
 	return dogQuiver, sheepQuiver
 
-def plotDataPositions(data):
+def plotDataPositions(data, save = 'Off'):
 	dogTheta = np.arctan2(data['dogVel'][itime-1,1], data['dogVel'][itime-1,0])
 	sheepTheta = np.arctan2(data['sheepVel'][itime-1,:,1], data['sheepVel'][itime-1,:,0])
 	dogQuiver.set_offsets(np.transpose([data['dog'][itime, 0], data['dog'][itime, 1]]))
@@ -228,6 +230,8 @@ def plotDataPositions(data):
 	sheepQuiver.set_offsets(np.transpose([data['sheep'][itime,:, 0], data['sheep'][itime,:, 1]]))
 	sheepQuiver.set_UVC(np.cos(sheepTheta), np.sin(sheepTheta))
 	plt.pause(0.005)
+	if save == 'On':
+		plt.savefig(str(itime).zfill(7)+'.png')
 
 ###############
 #Simulation
@@ -235,7 +239,7 @@ def plotDataPositions(data):
 plt.close()
 data = init()
 initCond(data)
-dogQuiver, sheepQuiver = initPlot(data)
+dogQuiver, sheepQuiver = initPlot(data, save = 'On')
 itime = 0
 lastSnapshot = 0
 lastPlot = 0
@@ -243,7 +247,7 @@ lastPlot = 0
 while data['t'][itime] < TF:
 	if data['t'][itime]-lastPlot > plotPeriod:
 		print data['t'][itime]
-		plotDataPositions(data)
+		plotDataPositions(data, save = 'On')
 		lastPlot = data['t'][itime]
 
 	if data['t'][itime]-lastSnapshot > snapshotPeriod:
@@ -267,16 +271,3 @@ while data['t'][itime] < TF:
 #y = np.cos(x)
 #
 #scipy.io.savemat('test.mat', dict(x=x, y=y))
-
-
-
-
-
-
-
-
-
-
-
-
-
