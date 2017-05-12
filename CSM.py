@@ -3,11 +3,13 @@ import math
 import matplotlib.pyplot as plt
 import sys
 import h5py
-
-sys.dont_write_bytecode = True
-sys.path.insert(0, '.')
-from params import *
+import os
 from scipy.spatial.distance import cdist
+sys.dont_write_bytecode = True
+sys.path.insert(0,os.getcwd())
+from params import *
+
+
 
 def makeSquareWalls(wallTop,wallBottom,wallLeft,wallRight):
 	#Walls defined by four lines: Ax+By+C = 0
@@ -22,9 +24,9 @@ def init():
 	data = dict()
 	cachedTimesteps = 5*int(round(TF/dt))
 	data['dog'] = np.zeros((cachedTimesteps, 2))
+	data['dogVel'] = np.zeros((cachedTimesteps,2))
 	data['sheep'] = np.zeros((cachedTimesteps,NP, 2))
 	data['sheepVel'] = np.zeros((cachedTimesteps,NP,2))
-	data['dogVel'] = np.zeros((cachedTimesteps,2))
 
 	data['dist_id'] = np.zeros((cachedTimesteps,NP))
 	data['dist_ij'] = dict()
@@ -44,7 +46,8 @@ def init():
 		data['dist_iw'] = np.zeros((cachedTimesteps,NP,4))
 		data['forceWalls'] = np.zeros((cachedTimesteps,NP,2))
 		data['dist_dw'] = np.zeros((cachedTimesteps,4))
-		data['forceSheep'] = np.zeros((cachedTimesteps, NP, 2))
+		if sheepSheepInteration == 'On':
+			data['forceSheep'] = np.zeros((cachedTimesteps, NP, 2))
 	else:
 		data['walls'] = []
 
@@ -90,6 +93,7 @@ def doVelocityStep(data):
 	frac = distDogSheep*np.transpose(np.tile((np.linalg.norm(distDogSheep,axis=1))**(-p),(2,1)))
 	data['dogVel'][itime] = (c/NP)*frac.sum(axis=0)
 
+	data['dist_id'][itime] = cdist(data['sheep'][itime], data['dog'][itime].reshape(1,2))
 	if timeStepMethod == 'Euler':
 		data['dog'][itime + 1] = data['dog'][itime] + data['dogVel'][itime]*dt
 		data['sheep'][itime + 1] = data['sheep'][itime] + data['sheepVel'][itime]*dt
@@ -152,25 +156,19 @@ def doAccelerationStep(data):
 		data['forceWalls'][itime,:,1] += A*np.exp((sheepSize - data['dist_iw'][itime,:,wall])/B)*data['walls']['n'][wall][1]
 
 	dist_ij = cdist(data['sheep'][itime], data['sheep'][itime])
-	#data['dist_ij']['max'][itime] = max(dist_ij)
-	#data['dist_ij']['min'][itime] = min(dist_ij)
-	#data['dist_ij']['mean'][itime] = np.mean(dist_ij)
+	data['dist_ij']['max'][itime] = np.max(dist_ij)
+	data['dist_ij']['min'][itime] = np.min(dist_ij[np.nonzero(dist_ij)])
+	data['dist_ij']['mean'][itime] = np.mean(dist_ij)
 
-	#f_ij = np.zeros((NP, NP, 2))
-	#for i in range(NP-1):
-	#	f_ij[i, 1+i:, :] = map(lambda j: A*np.exp((sheepSize*2 - dist_ij[i,j])/B)*(data['sheep'][itime][i] - data['sheep'][itime][j])/dist_ij[i,j], range(i+1, NP))
-
-	#data['forceSheep'][itime] = (-np.transpose(f_ij, axes=(1, 0, 2)) + f_ij).sum(axis = 1)
-	#print data['forceSheep'][itime]
-
-	#print np.array(map(lambda i:np.array(map(lambda j: A*np.exp((sheepSize*2 - dist_ij[i,j])/B)*(data['sheep'][itime][i] - data['sheep'][itime][j])/dist_ij[i,j], np.delete(range(NP), i, 0))).sum(axis = 0),range(NP)))
-	data['forceSheep'][itime] = np.array(map(lambda i: np.nansum(np.fromfunction(lambda j,k: A*np.exp((sheepSize*2 - dist_ij[i,j])/B)*(data['sheep'][itime][i,k] - data['sheep'][itime][j,k])/dist_ij[i,j],(NP,2),dtype=int),axis=0),range(NP)))
-	#print data['forceSheep'][itime]
-	#print np.shape(np.transpose(data['forceSheep'][itime]))
-	#data['forceSheep'][itime] = data['forceSheep'][itime] + np.transpose(data['forceSheep'][itime])
+	data['dist_id'][itime] = cdist(data['sheep'][itime], data['dog'][itime].reshape(1,2)).reshape(NP)
+	if sheepSheepInteration == 'On':
+		data['forceSheep'][itime] = np.array(map(lambda i: np.nansum(np.fromfunction(lambda j,k: A*np.exp((sheepSize*2 - dist_ij[i,j])/B)*(data['sheep'][itime][i,k] - data['sheep'][itime][j,k])/dist_ij[i,j],(NP,2),dtype=int),axis=0),range(NP)))
 
 	if len(data['walls'])>0:
-		data['sheepAcc'][itime] += data['forceWalls'][itime]/60. + data['forceSheep'][itime]/60.
+		if sheepSheepInteration == 'On':
+			data['sheepAcc'][itime] += data['forceWalls'][itime]/60. + data['forceSheep'][itime]/60.
+		else:
+			data['sheepAcc'][itime] += data['forceWalls'][itime]/60.
 
 	if timeStepMethod == 'Euler':
 		#Euler time step
@@ -243,49 +241,49 @@ def initPlot(data):
 		plt.savefig(str(0).zfill(7)+'.png')
 	return dogQuiver, sheepQuiver
 
-def plotDataPositions(data):
-	dogTheta = np.arctan2(data['dogVel'][itime-1,1], data['dogVel'][itime-1,0])
-	sheepTheta = np.arctan2(data['sheepVel'][itime-1,:,1], data['sheepVel'][itime-1,:,0])
-	dogQuiver.set_offsets(np.transpose([data['dog'][itime, 0], data['dog'][itime, 1]]))
-	dogQuiver.set_UVC(np.cos(dogTheta),np.sin(dogTheta))
-	sheepQuiver.set_offsets(np.transpose([data['sheep'][itime,:, 0], data['sheep'][itime,:, 1]]))
-	sheepQuiver.set_UVC(np.cos(sheepTheta), np.sin(sheepTheta))
+def plotDataPositions(data, tstep, dQuiv, sQuiv):
+	dogTheta = np.arctan2(data['dogVel'][tstep-1,1], data['dogVel'][tstep-1,0])
+	sheepTheta = np.arctan2(data['sheepVel'][tstep-1,:,1], data['sheepVel'][tstep-1,:,0])
+	dQuiv.set_offsets(np.transpose([data['dog'][tstep, 0], data['dog'][tstep, 1]]))
+	dQuiv.set_UVC(np.cos(dogTheta),np.sin(dogTheta))
+	sQuiv.set_offsets(np.transpose([data['sheep'][tstep,:, 0], data['sheep'][tstep,:, 1]]))
+	sQuiv.set_UVC(np.cos(sheepTheta), np.sin(sheepTheta))
 	plt.pause(0.005)
 	if savePlotPng == 'On':
 		plt.savefig(str(itime).zfill(7)+'.png')
 
 
 def saveData(data):
-	h5f = h5py.File('data-%07d.h5'%itime, 'w')
+	h5f = h5py.File('data-%07d.h5'%int(data['t'][itime]), 'w')
+	h5f.create_dataset('itime', data = [itime])
 	for k in data.keys():
 		if type(data[k]) is dict:
 			for k2 in data[k].keys():
 				try:
-					h5f.create_dataset(k+'-'+k2, data=data[k][k2],compression="gzip")
+					h5f.create_dataset(k+'-'+k2, data=data[k][k2][0:itime+1],compression="gzip")
 				except:
-					h5f.create_dataset(k+'-'+k2, data=data[k][k2])
+					h5f.create_dataset(k+'-'+k2, data=data[k][k2][0:itime+1])
 		else:
 			try:
-				h5f.create_dataset(k, data=data[k],compression="gzip")
+				h5f.create_dataset(k, data=data[k][0:itime+1],compression="gzip")
 			except:
-				h5f.create_dataset(k, data=data[k])
+				h5f.create_dataset(k, data=data[k][0:itime+1])
 	h5f.close()
 
 def loadData(data,fn):
 	h5f = h5py.File(fn,'r')
-	itime = int(fn[5:-3])
-	data['dog'] = np.copy(h5f['dog'])
-	data['sheep'] = np.copy(h5f['sheep'])
-	data['sheepVel'] = np.copy(h5f['sheepVel'])
-	data['dogVel'] = np.copy(h5f['dogVel'])
+	itime = np.copy(h5f['itime'])[0]
+	data['dog'][0:itime+1] = np.copy(h5f['dog'])
+	data['sheep'][0:itime+1] = np.copy(h5f['sheep'])
+	data['sheepVel'][0:itime+1] = np.copy(h5f['sheepVel'])
+	data['dogVel'][0:itime+1] = np.copy(h5f['dogVel'])
 
-	data['dist_id'] = np.copy(h5f['dist_id'])
-	data['dist_ij'] = dict()
-	data['dist_ij']['min'] = np.copy(h5f['dist_ij-min'])
-	data['dist_ij']['max'] = np.copy(h5f['dist_ij-max'])
-	data['dist_ij']['mean'] = np.copy(h5f['dist_ij-mean'])
+	data['dist_id'][0:itime+1] = np.copy(h5f['dist_id'])
+	data['dist_ij']['min'][0:itime+1] = np.copy(h5f['dist_ij-min'])
+	data['dist_ij']['max'][0:itime+1] = np.copy(h5f['dist_ij-max'])
+	data['dist_ij']['mean'][0:itime+1] = np.copy(h5f['dist_ij-mean'])
 
-	data['t'] = np.copy(h5f['t'])
+	data['t'][0:itime+1] = np.copy(h5f['t'])
 
 	if timeStepMethod == 'Adaptive':
 		data['q'] = np.copy(h5f['q']).tolist()
@@ -295,23 +293,23 @@ def loadData(data,fn):
 	if wallType == 'Square' :
 		data['walls']['eqn'] = np.copy(h5f['walls-eqn'])
 		data['walls']['n'] = np.copy(h5f['walls-n'])
-		data['dist_iw'] = np.copy(h5f['dist_iw'])
-		data['forceWalls'] = np.copy(h5f['forceWalls'])
-		data['dist_dw'] = np.copy(h5f['dist_dw'])
+		data['dist_iw'][0:itime+1] = np.copy(h5f['dist_iw'])
+		data['forceWalls'][0:itime+1] = np.copy(h5f['forceWalls'])
+		data['dist_dw'][0:itime+1] = np.copy(h5f['dist_dw'])
 	else:
 		data['walls'] = []
 
 	if updateMethod == 'Velocity':
-		data['bterm'] = np.copy(h5f['bterm'])
-		data['aterm'] = np.copy(h5f['aterm'])
+		data['bterm'][0:itime+1] = np.copy(h5f['bterm'])
+		data['aterm'][0:itime+1] = np.copy(h5f['aterm'])
 	elif updateMethod == 'Acceleration':
-		data['sheepAccFlocking'] = np.copy(h5f['sheepAccFlocking'])
-		data['sheepAccFlight'] = np.copy(h5f['sheepAccFlight'])
-		data['sheepAcc'] = np.copy(h5f['sheepAcc'])
-		data['dogAcc'] = np.copy(h5f['dogAcc'])
-		data['Gfunc'] = np.copy(h5f['Gfunc'])
-		data['Hfunc'] = np.copy(h5f['Hfunc'])
-		data['Ffunc'] = np.copy(h5f['Ffunc'])
+		data['sheepAccFlocking'][0:itime+1] = np.copy(h5f['sheepAccFlocking'])
+		data['sheepAccFlight'][0:itime+1] = np.copy(h5f['sheepAccFlight'])
+		data['sheepAcc'][0:itime+1] = np.copy(h5f['sheepAcc'])
+		data['dogAcc'][0:itime+1] = np.copy(h5f['dogAcc'])
+		data['Gfunc'][0:itime+1] = np.copy(h5f['Gfunc'])
+		data['Hfunc'][0:itime+1] = np.copy(h5f['Hfunc'])
+		data['Ffunc'][0:itime+1] = np.copy(h5f['Ffunc'])
 	else:
 		sys.exit("Error: updateMethod not recognized!")
 	return itime
@@ -333,43 +331,40 @@ def wipeData(data):
 ###############
 #Simulation
 ###############
-plt.close()
-data = init()
-itime = 0
-initCond(data)
-if loadFromFile == 'On':
-	itime = loadData(data,fileName)
-dogQuiver, sheepQuiver = initPlot(data)
-lastSnapshot = data['t'][itime]
-lastPlot = data['t'][itime]
+def main():
+	pass
 
-while data['t'][itime] < TF:
-	if data['t'][itime]-lastPlot > plotPeriod:
-		print data['t'][itime]
-		print itime
-		plotDataPositions(data)
-		lastPlot = data['t'][itime]
+if __name__ == "__main__":
+	plt.close()
+	data = init()
+	itime = 0
+	initCond(data)
+	if loadFromFile == 'On':
+		itime = loadData(data,fileName)
+	if plot == 'On':
+		dogQuiver, sheepQuiver = initPlot(data)
+	lastSnapshot = data['t'][itime]
+	lastPlot = data['t'][itime]
 
-	if data['t'][itime]-lastSnapshot > snapshotPeriod:
-		saveData(data)
-		print "Saving at "+str(data['t'][itime])
-		lastSnapshot = data['t'][itime]
-		wipeData(data)
-		itime = 4
+	while data['t'][itime] < TF:
+		if data['t'][itime]-lastPlot > plotPeriod:
+			print data['t'][itime]
+			if plot == 'On':
+				plotDataPositions(data, itime, dogQuiver, sheepQuiver)
+			lastPlot = data['t'][itime]
+		if saveData == 'On':
+			if data['t'][itime]-lastSnapshot > snapshotPeriod:
+				print "Saving at "+str(data['t'][itime])
+				saveData(data)
+				lastSnapshot = data['t'][itime]
+				wipeData(data)
+				itime = 4
 
-	if updateMethod == 'Velocity':
-		doVelocityStep(data)
-	elif updateMethod == 'Acceleration':
-		doAccelerationStep(data)
-	else:
-		sys.exit('Invalid updateMethod: '+updateMethod)
+		if updateMethod == 'Velocity':
+			doVelocityStep(data)
+		elif updateMethod == 'Acceleration':
+			doAccelerationStep(data)
+		else:
+			sys.exit('Invalid updateMethod: '+updateMethod)
 
-	itime+=1
-
-#save as matlab .mat file
-#import scipy.io
-#
-#x = np.linspace(0, 2 * np.pi, 100)
-#y = np.cos(x)
-#
-#scipy.io.savemat('test.mat', dict(x=x, y=y))
+		itime+=1
