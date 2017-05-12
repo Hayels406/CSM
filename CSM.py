@@ -93,7 +93,7 @@ def doVelocityStep(data):
 	frac = distDogSheep*np.transpose(np.tile((np.linalg.norm(distDogSheep,axis=1))**(-p),(2,1)))
 	data['dogVel'][itime] = (c/NP)*frac.sum(axis=0)
 
-	data['dist_id'][itime] = cdist(data['sheep'][itime], data['dog'][itime].reshape(1,2))
+	data['dist_id'][itime] = cdist(data['sheep'][itime], data['dog'][itime].reshape(1,2)).reshape(NP)
 	if timeStepMethod == 'Euler':
 		data['dog'][itime + 1] = data['dog'][itime] + data['dogVel'][itime]*dt
 		data['sheep'][itime + 1] = data['sheep'][itime] + data['sheepVel'][itime]*dt
@@ -352,7 +352,8 @@ if __name__ == "__main__":
 			if plot == 'On':
 				plotDataPositions(data, itime, dogQuiver, sheepQuiver)
 			lastPlot = data['t'][itime]
-		if saveData == 'On':
+
+		if saveDataH5 == 'On':
 			if data['t'][itime]-lastSnapshot > snapshotPeriod:
 				print "Saving at "+str(data['t'][itime])
 				saveData(data)

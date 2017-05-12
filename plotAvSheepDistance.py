@@ -17,8 +17,11 @@ from CSM import loadData
 #def avSpeed(data):
 #    (np.sqrt((data['sheepVel']**2).sum(axis = 2))).mean(axis = 1)
 
-data = init()
-itime = loadData(data,fileName)
+if 'itime' != globals():
+    data = init()
+    itime = loadData(data,fileName)
+else itime = itime - 1
+
 data['t'] = data['t'][0:itime]
 data['dist_ij']['min'] = data['dist_ij']['min'][0:itime]
 data['dist_ij']['max'] = data['dist_ij']['max'][0:itime]
