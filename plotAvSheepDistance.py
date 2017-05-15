@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 import h5py
 import os
-from scipy.spatial.distance import cdist
+from glob import glob
 sys.dont_write_bytecode = True
 sys.path.insert(0,os.getcwd())
 from params import *
@@ -12,31 +12,41 @@ from params import *
 
 from CSM import init
 from CSM import loadData
-#from CSM import loadData
 
-#def avSpeed(data):
-#    (np.sqrt((data['sheepVel']**2).sum(axis = 2))).mean(axis = 1)
-
-if 'itime' != globals():
+files = sorted(glob('*.h5'))
+minD = np.array([])
+maxD = np.array([])
+meanD = np.array([])
+t = np.array([])
+for dataName in files:
     data = init()
-    itime = loadData(data,fileName)
-else itime = itime - 1
+    itime = loadData(data,dataName)
 
-data['t'] = data['t'][0:itime]
-data['dist_ij']['min'] = data['dist_ij']['min'][0:itime]
-data['dist_ij']['max'] = data['dist_ij']['max'][0:itime]
-data['dist_ij']['mean'] = data['dist_ij']['mean'][0:itime]
+    if dataName == files[0]:
+        t = np.append(t, data['t'][0:itime])
+        minD = np.append(minD, data['dist_ij']['min'][0:itime])
+        maxD = np.append(maxD, data['dist_ij']['max'][0:itime])
+        meanD = np.append(meanD, data['dist_ij']['mean'][0:itime])
 
+    else:
+        t = np.append(t, data['t'][4:itime])
+        minD = np.append(minD, data['dist_ij']['min'][4:itime])
+        maxD = np.append(maxD, data['dist_ij']['max'][4:itime])
+        meanD = np.append(meanD, data['dist_ij']['mean'][4:itime])
+
+print 'min'
 minPlot = plt.figure()
-plt.plot(data['t'], data['dist_ij']['min'])
+plt.plot(t, minD)
 minPlot.show()
 
+print 'max'
 maxPlot = plt.figure()
-plt.plot(data['t'], data['dist_ij']['max'])
+plt.plot(t, maxD)
 maxPlot.show()
 
+print 'mean'
 meanPlot = plt.figure()
-plt.plot(data['t'], data['dist_ij']['mean'])
+plt.plot(t, meanD)
 meanPlot.show()
 
 #new  = plt.figure()
@@ -50,5 +60,5 @@ meanPlot.show()
 #for g in gr:
 #    g.set_ylim(0.9, 10)
 
-new.show()
+#new.show()
 #print data

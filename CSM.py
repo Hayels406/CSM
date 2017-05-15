@@ -369,3 +369,7 @@ if __name__ == "__main__":
 			sys.exit('Invalid updateMethod: '+updateMethod)
 
 		itime+=1
+
+	if saveDataH5 == 'On':
+		print "Saving at "+str(data['t'][itime])
+		saveData(data)

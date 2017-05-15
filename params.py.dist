@@ -1,28 +1,36 @@
-TF = 200.0
-dt = 0.01
-NP = 1
+TF = 2000.
+dt = 0.1
+NP = 200
+a = 0.01
 b = 0.2
 p = 3.0
 c = 0.5
 A = 2*10**3
 B = 0.08
 epsilon = dt**6
-sheepSize = 0.5
+sheepSize = 0.45
 
-timeStepMethod = 'Euler' #Euler or Adaptive
+timeStepMethod = 'Adaptive' #Euler or Adaptive
 updateMethod = 'Acceleration' #Acceleration or Velocity
+
+sheepSheepInteration = 'On' #F_ij term
+
 wallType = 'Square'
-wallLeft = -20
-wallRight = 20
-wallBottom = -20
-wallTop = 20
+wallLeft = -40
+wallRight = 40
+wallBottom = -40
+wallTop = 40
 
 snapshotPeriod = 200.0 #units of time
-plotPeriod = 2.0 #units of time
-savePlotPng = 'Off'
+plotPeriod = 10. #units of time
+plot = 'Off' #On or Off
+savePlotPng = 'Off' #On or Off
+saveDataH5 = 'On'
 
-
-dog_init = np.array([2., 2.])		#np.random.rand(2)*3.0+1.
-sheep_init = np.array([6. ,4.])		#np.random.rand(2)*3.0 + 3.
+dog_init = [-5., -10.]		#np.random.rand(2)*3.0+1.
+#sheep_init = [3. , -2.]		#np.random.rand(2)*3.0 + 3.
 dog_vel_init = [0., 0.]
-sheep_vel_init = [0. ,0.]
+sheep_vel_init = [[0. ,0.]]*NP
+
+loadFromFile = 'Off'
+fileName = 'data-0001000.h5'

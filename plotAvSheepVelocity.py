@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 import h5py
 import os
-from scipy.spatial.distance import cdist
+from glob import glob
 sys.dont_write_bytecode = True
 sys.path.insert(0,os.getcwd())
 from params import *
@@ -13,15 +13,23 @@ from params import *
 from CSM import init
 from CSM import loadData
 
+files = sorted(glob('*.h5'))
+av = np.array([])
+t = np.array([])
+for dataName in files:
+    data = init()
+    itime = loadData(data,dataName)
 
-data = init()
-itime = loadData(data,fileName)
-data['sheepVel'] = data['sheepVel'][0:itime]
-data['t'] = data['t'][0:itime]
-avSpeed = np.sqrt((data['sheepVel']**2).sum(axis = 2)).mean(axis = 1)
-plt.plot(data['t'], avSpeed)
+    if dataName == files[0]:
+        data['t'] = data['t'][0:itime]
+        data['sheepVel'] = data['sheepVel'][0:itime]
+        av = np.append(av, np.sqrt((data['sheepVel']**2).sum(axis = 2)).mean(axis = 1))
+    else:
+        data['t'] = data['t'][4:itime]
+        data['sheepVel'] = data['sheepVel'][4:itime]
+        av = np.append(av, np.sqrt((data['sheepVel']**2).sum(axis = 2)).mean(axis = 1))
+    t = np.append(t, data['t'])
+
+
+plt.plot(t, av)
 plt.show()
-
-
-
-#print data
