@@ -322,10 +322,10 @@ def wipeData(data):
 			elif type(data[k]) is dict:
 				for k2 in data[k].keys():
 					data[k][k2][0:5] = data[k][k2][itime-4:itime+1]
-					data[k][k2][5:] = data[k][k2][5:]*0
+					data[k][k2][5:itime + 1] = data[k][k2][5:itime + 1]*0.
 			else:
 				data[k][0:5] = data[k][itime-4:itime+1]
-				data[k][5:] = data[k][5:]*0
+				data[k][5:itime + 1] = data[k][5:itime + 1]*0.
 
 
 ###############
@@ -358,6 +358,7 @@ if __name__ == "__main__":
 				print "Saving at "+str(data['t'][itime])
 				saveData(data)
 				lastSnapshot = data['t'][itime]
+				print "Wiping old data"
 				wipeData(data)
 				itime = 4
 

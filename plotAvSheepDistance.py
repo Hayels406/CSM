@@ -36,17 +36,20 @@ for dataName in files:
 
 print 'min'
 minPlot = plt.figure()
-plt.plot(t, minD)
+plt.plot(t, minD, lw = 2)
+plt.axhline(mean(minD), color = 'r', lw = 2)
 minPlot.show()
 
 print 'max'
 maxPlot = plt.figure()
-plt.plot(t, maxD)
+plt.plot(t, maxD, lw = 2)
+plt.axhline(mean(maxD), color = 'r', lw = 2)
 maxPlot.show()
 
 print 'mean'
 meanPlot = plt.figure()
-plt.plot(t, meanD)
+plt.plot(t, meanD, lw = 2)
+plt.axhline(mean(meanD), color = 'r', lw = 2)
 meanPlot.show()
 
 #new  = plt.figure()

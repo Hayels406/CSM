@@ -31,7 +31,7 @@ for dataName in files:
         data['t'] = data['t'][4:itime]
         data['sheepVel'] = data['sheepVel'][4:itime]
         loop = loop + tstep
-        align = np.append(align, np.zeros(itime-4))
+        align = np.append(align, np.zeros(np.shape(data['t'])[0]))
     t = np.append(t, data['t'])
 
 
@@ -40,7 +40,10 @@ for dataName in files:
         math.sqrt(pow(np.cos(thetas).mean(), 2) + pow(np.sin(thetas).mean(), 2))
         align[tstep + loop] = math.sqrt(pow(np.cos(thetas).mean(), 2) + pow(np.sin(thetas).mean(), 2))
 
-plt.plot(t[0:-1], align[0:-1], lw = 2)
+plt.plot(t, align, lw = 2)
 plt.ylim(-0.005, 1.05)
 plt.axhline(1.0, color = 'r', lw = 2)
 plt.show()
+
+if sys.argv[1] == 'Save':
+    plt.savefig('alignment.png')
