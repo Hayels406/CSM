@@ -222,7 +222,7 @@ def doAccelerationStep(data):
 
 
 
-def initPlot(data):
+def initPlot(data, savePlotPng):
 	plt.figure()
 	dogTheta = np.zeros(1)
 	sheepTheta = np.zeros(1)
@@ -238,10 +238,10 @@ def initPlot(data):
 		plt.axvline(wallRight, color = 'r', lw = 5)
 	plt.pause(0.005)
 	if savePlotPng == 'On':
-		plt.savefig(str(0).zfill(7)+'.png')
+		plt.savefig('frames/'+str(0).zfill(7)+'.png')
 	return dogQuiver, sheepQuiver
 
-def plotDataPositions(data, tstep, dQuiv, sQuiv):
+def plotDataPositions(data, tstep, dQuiv, sQuiv, savePlotPng):
 	dogTheta = np.arctan2(data['dogVel'][tstep-1,1], data['dogVel'][tstep-1,0])
 	sheepTheta = np.arctan2(data['sheepVel'][tstep-1,:,1], data['sheepVel'][tstep-1,:,0])
 	dQuiv.set_offsets(np.transpose([data['dog'][tstep, 0], data['dog'][tstep, 1]]))
@@ -250,7 +250,7 @@ def plotDataPositions(data, tstep, dQuiv, sQuiv):
 	sQuiv.set_UVC(np.cos(sheepTheta), np.sin(sheepTheta))
 	plt.pause(0.005)
 	if savePlotPng == 'On':
-		plt.savefig(str(itime).zfill(7)+'.png')
+		plt.savefig('frames/'+str(np.floor(data['t'][tstep])).zfill(7)+'.png')
 
 
 def saveData(data):

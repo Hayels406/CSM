@@ -32,4 +32,5 @@ for dataName in files:
 
 
 plt.plot(t, av)
+plt.xlim(max = max(t))
 plt.show()

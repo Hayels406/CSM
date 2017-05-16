@@ -38,19 +38,19 @@ print 'min'
 minPlot = plt.figure()
 plt.plot(t, minD, lw = 2)
 plt.axhline(mean(minD), color = 'r', lw = 2)
-minPlot.show()
+minPlot.savefig('minDistance.png')
 
 print 'max'
 maxPlot = plt.figure()
 plt.plot(t, maxD, lw = 2)
 plt.axhline(mean(maxD), color = 'r', lw = 2)
-maxPlot.show()
+maxPlot.savefig('minDistance.png')
 
 print 'mean'
 meanPlot = plt.figure()
 plt.plot(t, meanD, lw = 2)
 plt.axhline(mean(meanD), color = 'r', lw = 2)
-meanPlot.show()
+meanPlot.savefig('meanDisance.png')
 
 #new  = plt.figure()
 #from mpl_toolkits.axes_grid1 import AxesGrid

@@ -38,10 +38,10 @@ for dataName in files:
     tstep = 0
     lastPlot = data['t'][tstep]
     if dataName == files[0]:
-        dogQuiver, sheepQuiver = initPlot(data)
+        dogQuiver, sheepQuiver = initPlot(data, 'On')
     for t in data['t']:
         if t-lastPlot > plotPeriod:
     		print t
-    		plotDataPositions(data, tstep, dogQuiver, sheepQuiver)
+    		plotDataPositions(data, tstep, dogQuiver, sheepQuiver, 'On')
     		lastPlot = data['t'][tstep]
         tstep += 1
