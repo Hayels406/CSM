@@ -5,6 +5,7 @@ import sys
 import h5py
 import os
 from matplotlib.colors import LinearSegmentedColormap
+from sklearn.neighbors import KDTree
 from scipy.spatial import Voronoi
 from scipy.spatial.distance import cdist
 sys.dont_write_bytecode = True
@@ -77,16 +78,18 @@ def initCond(data):
 		data['sheep'][0] = 2*np.array([[x,y] for x in np.arange(0.,np.ceil(np.sqrt(NP)),1.) for y in np.arange(0.,np.ceil(np.sqrt(NP)),1.)])[0:NP]#np.random.rand(NP,2)*3
 		data['sheepVel'][0] = np.zeros(NP, 2)
 	elif sheep_init == 'Random':
+		print 'Creating initial locations ...'
 		min_dist_ij = 0.
 		while min_dist_ij < 1.0:
 			data['sheep'][0,:,0] = np.random.rand(NP)*(wallRight - wallLeft - 5.) + wallLeft
 			data['sheep'][0,:,1] = np.random.rand(NP)*(wallTop - wallBottom/2. - 5.) + wallBottom/2.
 			dist_ij = cdist(data['sheep'][itime], data['sheep'][itime])
 			min_dist_ij = np.min(dist_ij[np.nonzero(dist_ij)])
-			print min_dist_ij
 		sheepTheta = np.random.rand(NP)*2*math.pi
 		data['sheepVel'][0,:,0] = sheep_vel_init*np.cos(sheepTheta)
 		data['sheepVel'][0,:,1] = sheep_vel_init*np.sin(sheepTheta)
+		data['sheepVel'][-1,:,0] = sheep_vel_init*np.cos(sheepTheta)
+		data['sheepVel'][-1,:,1] = sheep_vel_init*np.sin(sheepTheta)
 
 
 ###############
@@ -146,13 +149,20 @@ def doVelocityStep(data):
 
 def doAccelerationStep(data):
 	#Acceleration of sheep
-	distMatrixNotMe = np.array(map(lambda j:data['sheep'][itime,j] - np.delete(data['sheep'][itime], j, 0),range(NP)))
-	normStuff = np.transpose(np.tile(np.transpose(np.linalg.norm(distMatrixNotMe, axis = 2)),(2,1,1)))
+	#Flocking
+	if flocking == 'PredatorPrey':
+		distMatrixNotMe = np.array(map(lambda j:data['sheep'][itime,j] - np.delete(data['sheep'][itime], j, 0),range(NP)))
+		normStuff = np.transpose(np.tile(np.transpose(np.linalg.norm(distMatrixNotMe, axis = 2)),(2,1,1)))
+		data['sheepAccFlocking'][itime] = f/NP*((normStuff**(-1) - a*normStuff)*distMatrixNotMe*(normStuff**(-1))).sum(axis=1)
+	elif flocking == 'Vicsek':
+		print 'v'
+	else:
+		sys.exit('Invalid flocking mechanisim: ' + flocking + 'in doAccelerationStep')
 
+	#Flight
 	preyMinusPred = data['sheep'][itime] - data['dog'][itime]
 	normStuff2 = np.transpose(np.tile(np.linalg.norm(preyMinusPred,axis=1),(2,1)))
 	data['Gfunc'][itime] = normStuff2**(-1)
-	data['sheepAccFlocking'][itime] = f/NP*((normStuff**(-1) - a*normStuff)*distMatrixNotMe*(normStuff**(-1))).sum(axis=1)
 
 	if allSheepSeeDog == 'On':
 		data['sheepAccFlight'][itime] = data['Gfunc'][itime]*preyMinusPred*(normStuff2**(-1))
@@ -181,7 +191,6 @@ def doAccelerationStep(data):
 	data['dist_ij']['max'][itime] = np.max(dist_ij)
 	data['dist_ij']['min'][itime] = np.min(dist_ij[np.nonzero(dist_ij)])
 	data['dist_ij']['mean'][itime] = np.mean(dist_ij)
-	print data['dist_ij']['min'][itime]
 
 	data['dist_id'][itime] = cdist(data['sheep'][itime], data['dog'][itime].reshape(1,2)).reshape(NP)
 	if sheepSheepInteration == 'On':
@@ -269,16 +278,23 @@ def initPlot(data, savePlotPng):
 	return dogQuiver, sheepQuiver
 
 def plotDataPositions(data, tstep, dQuiv, sQuiv, savePlotPng):
+	dogTheta = np.arctan2(data['dogVel'][tstep-1,1], data['dogVel'][tstep-1,0])
+	sheepTheta = np.arctan2(data['sheepVel'][tstep-1,:,1], data['sheepVel'][tstep-1,:,0])
+
 	colorQuiver = np.zeros(NP)
 	if showSheepDogCanSee == 'On':
 		colorQuiver[data['dog_index_neighbours']] = 1
-	dogTheta = np.arctan2(data['dogVel'][tstep-1,1], data['dogVel'][tstep-1,0])
-	sheepTheta = np.arctan2(data['sheepVel'][tstep-1,:,1], data['sheepVel'][tstep-1,:,0])
+		if showDogInfluence == 'On':
+			sys.exit('You cannot show both which sheep can see the dog and which sheep are under the dogs influence')
+	elif showDogInfluence == 'On':
+		colorQuiver[(sheepTheta > dogTheta - np.pi/16 ) * (sheepTheta < dogTheta + np.pi/16)] = 1
+
 	dQuiv.set_offsets(np.transpose([data['dog'][tstep, 0], data['dog'][tstep, 1]]))
 	dQuiv.set_UVC(np.cos(dogTheta),np.sin(dogTheta))
 	sQuiv.set_offsets(np.transpose([data['sheep'][tstep,:, 0], data['sheep'][tstep,:, 1]]))
 	sQuiv.set_UVC(np.cos(sheepTheta), np.sin(sheepTheta), colorQuiver)
 	plt.pause(0.005)
+
 	if savePlotPng == 'On':
 		plt.savefig('frames/'+str(np.floor(data['t'][tstep])).zfill(7)+'.png')
 

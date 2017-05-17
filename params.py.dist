@@ -5,6 +5,8 @@ a = 0.01
 b = 0.2
 p = 3.0
 c = 0.5
+f = 1.
+r = 10.
 A = 2*10**3
 B = 0.08
 epsilon = dt**6
@@ -12,15 +14,16 @@ sheepSize = 0.45
 
 timeStepMethod = 'Adaptive' #Euler or Adaptive
 updateMethod = 'Acceleration' #Acceleration or Velocity
+flocking = 'PredatorPrey'
 
 sheepSheepInteration = 'On' #F_ij term
 allSheepSeeDog = 'On'
 
 wallType = 'Square'
-wallLeft = -40
-wallRight = 40
-wallBottom = -40
-wallTop = 40
+wallLeft = -100
+wallRight = 100
+wallBottom = -100
+wallTop = 100
 
 snapshotPeriod = 200.0 #units of time
 plotPeriod = 10. #units of time
@@ -29,12 +32,13 @@ savePlotPng = 'Off' #On or Off
 saveDataH5 = 'On'
 
 dog_init = [-5., -10.]		#np.random.rand(2)*3.0+1.
-#sheep_init = [3. , -2.]		#np.random.rand(2)*3.0 + 3.
+sheep_init = "Grid"       #Grid or Random
 dog_vel_init = [0., 0.]
-sheep_vel_init = [[0. ,0.]]*NP
+sheep_vel_init = 0.1
 
 loadFromFile = 'Off'
 fileName = 'data-0001000.h5'
 
 #Plotting tweaks
 showSheepDogCanSee = 'Off'
+showDogInfluence = 'Off'
