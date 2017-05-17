@@ -73,8 +73,16 @@ def init():
 def initCond(data):
 	data['dog'][0] = np.array(dog_init)
 	data['dogVel'][0] = np.array(dog_vel_init)
-	data['sheep'][0] = 2*np.array([[x,y] for x in np.arange(0.,np.ceil(np.sqrt(NP)),1.) for y in np.arange(0.,np.ceil(np.sqrt(NP)),1.)])[0:NP]#np.random.rand(NP,2)*3
-	#data['sheep'][0][0] = np.array(sheep_init)
+	if sheep_init == 'Grid':
+		data['sheep'][0] = 2*np.array([[x,y] for x in np.arange(0.,np.ceil(np.sqrt(NP)),1.) for y in np.arange(0.,np.ceil(np.sqrt(NP)),1.)])[0:NP]#np.random.rand(NP,2)*3
+	elif sheep_init == 'Random':
+		min_dist_ij = 0.
+		while min_dist_ij < 1.0:
+			data['sheep'][0,:,0] = np.random.rand(NP)*(wallRight - wallLeft - 5.) + wallLeft
+			data['sheep'][0,:,1] = np.random.rand(NP)*(wallTop - wallBottom/2. - 5.) + wallBottom/2.
+			dist_ij = cdist(data['sheep'][itime], data['sheep'][itime])
+			min_dist_ij = np.min(dist_ij[np.nonzero(dist_ij)])
+			print min_dist_ij
 	data['sheepVel'][0] = np.array(sheep_vel_init)
 
 
@@ -141,7 +149,7 @@ def doAccelerationStep(data):
 	preyMinusPred = data['sheep'][itime] - data['dog'][itime]
 	normStuff2 = np.transpose(np.tile(np.linalg.norm(preyMinusPred,axis=1),(2,1)))
 	data['Gfunc'][itime] = normStuff2**(-1)
-	data['sheepAccFlocking'][itime] = 1./NP*((normStuff**(-1) - a*normStuff)*distMatrixNotMe*(normStuff**(-1))).sum(axis=1)
+	data['sheepAccFlocking'][itime] = f/NP*((normStuff**(-1) - a*normStuff)*distMatrixNotMe*(normStuff**(-1))).sum(axis=1)
 
 	if allSheepSeeDog == 'On':
 		data['sheepAccFlight'][itime] = data['Gfunc'][itime]*preyMinusPred*(normStuff2**(-1))
@@ -170,6 +178,7 @@ def doAccelerationStep(data):
 	data['dist_ij']['max'][itime] = np.max(dist_ij)
 	data['dist_ij']['min'][itime] = np.min(dist_ij[np.nonzero(dist_ij)])
 	data['dist_ij']['mean'][itime] = np.mean(dist_ij)
+	print data['dist_ij']['min'][itime]
 
 	data['dist_id'][itime] = cdist(data['sheep'][itime], data['dog'][itime].reshape(1,2)).reshape(NP)
 	if sheepSheepInteration == 'On':
