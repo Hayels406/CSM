@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import sys
 import h5py
 import os
+from matplotlib.colors import LinearSegmentedColormap
+from scipy.spatial import Voronoi
 from scipy.spatial.distance import cdist
 sys.dont_write_bytecode = True
 sys.path.insert(0,os.getcwd())
@@ -35,6 +37,7 @@ def init():
 	data['dist_ij']['mean'] = np.zeros(cachedTimesteps)
 
 	data['t'] = np.zeros(cachedTimesteps)
+	data['dog_index_neighbours'] = []
 
 	if timeStepMethod == 'Adaptive':
 		data['q'] = []
@@ -64,7 +67,6 @@ def init():
 		data['Ffunc'] = np.zeros((cachedTimesteps,NP,2))
 	else:
 		sys.exit("Error: updateMethod not recognized!")
-
 
 	return data
 
@@ -129,7 +131,7 @@ def doVelocityStep(data):
 			data['q'].append(np.floor(100.*q_f)/100.)
 
 	else:
-		sys.exit('Invalid time step method:'+timeStepMethod+' in doVelocitySheep()')
+		sys.exit('Invalid time step method:'+timeStepMethod+' in doVelocityStep()')
 
 def doAccelerationStep(data):
 	#Acceleration of sheep
@@ -140,7 +142,16 @@ def doAccelerationStep(data):
 	normStuff2 = np.transpose(np.tile(np.linalg.norm(preyMinusPred,axis=1),(2,1)))
 	data['Gfunc'][itime] = normStuff2**(-1)
 	data['sheepAccFlocking'][itime] = 1./NP*((normStuff**(-1) - a*normStuff)*distMatrixNotMe*(normStuff**(-1))).sum(axis=1)
-	data['sheepAccFlight'][itime] = data['Gfunc'][itime]*preyMinusPred*(normStuff2**(-1))
+
+	if allSheepSeeDog == 'On':
+		data['sheepAccFlight'][itime] = data['Gfunc'][itime]*preyMinusPred*(normStuff2**(-1))
+	elif allSheepSeeDog == 'Off':
+		vor = Voronoi(np.concatenate((data['sheep'][itime], data['dog'][itime][None,:]), axis = 0))
+		data['dog_index_neighbours'] = np.array([t[1] for t in [(b1, a1) for a1, b1 in vor.ridge_dict.keys()] + vor.ridge_dict.keys() if t[0] == NP]) #Calculates the Voronoi neighbours of dog
+		data['sheepAccFlight'][itime][data['dog_index_neighbours']] = (data['Gfunc'][itime]*preyMinusPred*(normStuff2**(-1)))[data['dog_index_neighbours']]
+	else:
+		sys.exit('Invalid allSheepSeeDog:'+allSheepSeeDog+' in doAccelerationStep()')
+
 	data['sheepAcc'][itime] = -data['sheepVel'][itime] + data['sheepAccFlight'][itime]+ data['sheepAccFlocking'][itime]
 
 	#Acceleration of dog
@@ -226,8 +237,12 @@ def initPlot(data, savePlotPng):
 	plt.figure()
 	dogTheta = np.zeros(1)
 	sheepTheta = np.zeros(1)
+	from matplotlib import colors
+	cmap = colors.ListedColormap(['black', 'blue'])
+	bounds=[0,0.5,1.0]
+	norm = colors.BoundaryNorm(bounds, cmap.N)
 	dogQuiver = plt.quiver(data['dog'][0, 0], data['dog'][0, 1], np.cos(dogTheta), np.sin(dogTheta), scale = 30, color = 'red')
-	sheepQuiver = plt.quiver(data['sheep'][0,:,0], data['sheep'][0,:,1], np.cos(sheepTheta), np.sin(sheepTheta), scale = 30)
+	sheepQuiver = plt.quiver(data['sheep'][0,:,0], data['sheep'][0,:,1], np.cos(sheepTheta), np.sin(sheepTheta), scale = 30, cmap = cmap, norm = norm)
 	plt.axis([wallLeft,wallRight,wallBottom,wallTop])
 	plt.axes().set_aspect('equal')
 	plotid = 0
@@ -242,12 +257,15 @@ def initPlot(data, savePlotPng):
 	return dogQuiver, sheepQuiver
 
 def plotDataPositions(data, tstep, dQuiv, sQuiv, savePlotPng):
+	colorQuiver = np.zeros(NP)
+	if showSheepDogCanSee == 'On':
+		colorQuiver[data['dog_index_neighbours']] = 1
 	dogTheta = np.arctan2(data['dogVel'][tstep-1,1], data['dogVel'][tstep-1,0])
 	sheepTheta = np.arctan2(data['sheepVel'][tstep-1,:,1], data['sheepVel'][tstep-1,:,0])
 	dQuiv.set_offsets(np.transpose([data['dog'][tstep, 0], data['dog'][tstep, 1]]))
 	dQuiv.set_UVC(np.cos(dogTheta),np.sin(dogTheta))
 	sQuiv.set_offsets(np.transpose([data['sheep'][tstep,:, 0], data['sheep'][tstep,:, 1]]))
-	sQuiv.set_UVC(np.cos(sheepTheta), np.sin(sheepTheta))
+	sQuiv.set_UVC(np.cos(sheepTheta), np.sin(sheepTheta), colorQuiver)
 	plt.pause(0.005)
 	if savePlotPng == 'On':
 		plt.savefig('frames/'+str(np.floor(data['t'][tstep])).zfill(7)+'.png')
@@ -342,7 +360,7 @@ if __name__ == "__main__":
 	if loadFromFile == 'On':
 		itime = loadData(data,fileName)
 	if plot == 'On':
-		dogQuiver, sheepQuiver = initPlot(data)
+		dogQuiver, sheepQuiver = initPlot(data, savePlotPng)
 	lastSnapshot = data['t'][itime]
 	lastPlot = data['t'][itime]
 
@@ -350,7 +368,7 @@ if __name__ == "__main__":
 		if data['t'][itime]-lastPlot > plotPeriod:
 			print data['t'][itime]
 			if plot == 'On':
-				plotDataPositions(data, itime, dogQuiver, sheepQuiver)
+				plotDataPositions(data, itime, dogQuiver, sheepQuiver, savePlotPng)
 			lastPlot = data['t'][itime]
 
 		if saveDataH5 == 'On':
@@ -367,7 +385,7 @@ if __name__ == "__main__":
 		elif updateMethod == 'Acceleration':
 			doAccelerationStep(data)
 		else:
-			sys.exit('Invalid updateMethod: '+updateMethod)
+			sys.exit('Invalid updateMethod: ' + updateMethod)
 
 		itime+=1
 
