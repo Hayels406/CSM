@@ -75,6 +75,7 @@ def initCond(data):
 	data['dogVel'][0] = np.array(dog_vel_init)
 	if sheep_init == 'Grid':
 		data['sheep'][0] = 2*np.array([[x,y] for x in np.arange(0.,np.ceil(np.sqrt(NP)),1.) for y in np.arange(0.,np.ceil(np.sqrt(NP)),1.)])[0:NP]#np.random.rand(NP,2)*3
+		data['sheepVel'][0] = np.zeros(NP, 2)
 	elif sheep_init == 'Random':
 		min_dist_ij = 0.
 		while min_dist_ij < 1.0:
@@ -83,9 +84,9 @@ def initCond(data):
 			dist_ij = cdist(data['sheep'][itime], data['sheep'][itime])
 			min_dist_ij = np.min(dist_ij[np.nonzero(dist_ij)])
 			print min_dist_ij
-	sheepTheta = np.random.rand(NP)*2*math.pi
-	data['sheepVel'][0,:,0] = sheep_vel_init*np.cos(sheepTheta)
-	data['sheepVel'][0,:,1] = sheep_vel_init*np.sin(sheepTheta)
+		sheepTheta = np.random.rand(NP)*2*math.pi
+		data['sheepVel'][0,:,0] = sheep_vel_init*np.cos(sheepTheta)
+		data['sheepVel'][0,:,1] = sheep_vel_init*np.sin(sheepTheta)
 
 
 ###############
