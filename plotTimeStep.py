@@ -1,5 +1,7 @@
 import numpy as np
 import math
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 import sys
 import h5py
@@ -14,22 +16,22 @@ from CSM import init
 from CSM import loadData
 
 files = sorted(glob('*.h5'))
-av = np.array([])
 t = np.array([])
+q = np.array([])
 for dataName in files:
     data = init()
     itime = loadData(data,dataName)
 
     if dataName == files[0]:
-        data['t'] = data['t'][0:itime]
-        data['sheepVel'] = data['sheepVel'][0:itime]
-        av = np.append(av, np.sqrt((data['sheepVel']**2).sum(axis = 2)).mean(axis = 1))
+        data['t'] = data['t'][3:itime]
+        data['q'] = data['q'][0:itime]
     else:
         data['t'] = data['t'][4:itime]
-        data['sheepVel'] = data['sheepVel'][4:itime]
-        av = np.append(av, np.sqrt((data['sheepVel']**2).sum(axis = 2)).mean(axis = 1))
-    t = np.append(t, data['t'])
+        data['q'] = data['q'][1:itime]
+    t = np.append(t, data['t'], axis = 0)
+    q = np.append(q, data['q'], axis = 0)
 
-
-plt.plot(t, av)
-plt.show()
+plt.plot(t[10:], dt*q[10:])
+plt.ylabel('Time Step Size')
+plt.xlabel('Time')
+plt.savefig('plots/timeStep.png')

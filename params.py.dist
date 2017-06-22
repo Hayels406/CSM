@@ -1,40 +1,49 @@
-TF = 2000.
+TF = 5000.
 dt = 0.1
 NP = 200
 a = 0.01
-b = 0.2
+b = 1.0
 p = 3.0
-c = 0.5
+c = 1.5
 f = 1.
-r = 10.
 A = 2*10**3
 B = 0.08
 epsilon = dt**6
 sheepSize = 0.45
+sheepMass = 60.
 
-timeStepMethod = 'Adaptive' #Euler or Adaptive
+r = 10.
+n = 199
+visualDist = 20.
+tau = 1.
+accCap = 1.
+
+timeStepMethod = 'Adaptive'   #Euler or Adaptive
 updateMethod = 'Acceleration' #Acceleration or Velocity
-flocking = 'PredatorPrey'
+flocking = 'PredatorPrey'           #PredatorPrey, Vicsek, TopoVicsek
 
 sheepSheepInteration = 'On' #F_ij term
-allSheepSeeDog = 'On'
+allSheepSeeDog = 'On'       #Can all the sheep see the dog
+gaussian = 'Off'            #New f function
+normDog = 'Off'
 
 wallType = 'Square'
-wallLeft = -100
-wallRight = 100
-wallBottom = -100
-wallTop = 100
+wallLeft = -50
+wallRight = 50
+wallBottom = -50
+wallTop = 50
 
-snapshotPeriod = 200.0 #units of time
-plotPeriod = 10. #units of time
-plot = 'Off' #On or Off
-savePlotPng = 'Off' #On or Off
-saveDataH5 = 'On'
+snapshotPeriod = 1000.0  #units of time
+plotPeriod = 50.        #units of time
+plot = 'Off'            #On or Off
+savePlotPng = 'On'      #On or Off
+saveDataH5 = 'On'       #On or Off
 
 dog_init = [-5., -10.]		#np.random.rand(2)*3.0+1.
-sheep_init = "Grid"       #Grid or Random
-dog_vel_init = [0., 0.]
-sheep_vel_init = 0.1
+sheep_init = "Random"     #Grid or Random
+dog_vel_init = [0., 0.]   #Initial velocity of the dog
+sheep_vel_init = 0.1      #Initial speed of sheep when Random
+sheep_area = 80.          #Initial size of sheep when Random
 
 loadFromFile = 'Off'
 fileName = 'data-0001000.h5'
