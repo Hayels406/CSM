@@ -1,5 +1,6 @@
 #!/bin/bash
 INSTALLDIR=/home/b1033128/Documents/CSM
+INSTALLDIR_TOPSY=/home/b1033128/CSM
 INSTALLDIR_HOME=/Users/hayleymoore/Documents/Uni/Documents/CSM
 DATE=$(date +%Y_%m_%d_h%Hm%M)
 #Create folder based on date:
@@ -13,4 +14,9 @@ fi
 if [ -f $INSTALLDIR_HOME/params.py.dist ]; then
 	cp $INSTALLDIR_HOME/params.py.dist ./params.py
 	ln -s $INSTALLDIR_HOME/CSM.py ./CSM.py
+fi
+
+if [ -f $INSTALLDIR_TOPSY/params.py.dist ]; then
+	cp $INSTALLDIR_TOPSY/params.py.dist ./params.py
+	ln -s $INSTALLDIR_TOPSY/CSM.py ./CSM.py
 fi
