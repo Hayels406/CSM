@@ -4,7 +4,7 @@ NP = 200
 a = 0.01
 b = 0.1
 p = 3.0
-c = 0.5
+c = 1.5
 f = 1.
 A = 2*10**3
 B = 0.08
@@ -13,7 +13,7 @@ sheepSize = 0.45
 sheepMass = 60.
 
 r = 10.
-n = 199
+n = 100
 visualDist = 20.
 tau = 1.
 accCap = 1.
@@ -25,6 +25,8 @@ flocking = 'PredatorPrey'           #PredatorPrey, Vicsek, TopoVicsek
 sheepSheepInteration = 'On' #F_ij term
 allSheepSeeDog = 'On' #Can all sheep see dog?
 gaussian = 'On'
+normDog = 'Off'
+cap = 'Off'
 
 wallType = 'Square'
 wallLeft = -50

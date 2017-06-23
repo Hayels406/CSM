@@ -1,7 +1,7 @@
 import numpy as np
 import math
-#import matplotlib as mpl
-#mpl.use('Agg')
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 import sys
 import h5py
@@ -37,4 +37,4 @@ plt.hist(acc, num_bins, normed=1, facecolor='green', alpha=0.5)
 n, bins, patches = plt.hist(acc, num_bins, normed=1, facecolor='green', alpha=0.5)
 line_best_fit = mlab.normpdf(bins, mu, sigma)
 plt.plot(bins, line_best_fit, 'r--')
-plt.show()
+plt.savfig('plots/histSheepAcceleration.png')

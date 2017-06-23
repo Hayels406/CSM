@@ -25,7 +25,7 @@ def init():
 	#Sets up main data structure
 	#Returns: dictionary of simulation data
 	data = dict()
-	cachedTimesteps = 5*int(round(TF/dt))
+	cachedTimesteps = 2*int(round(snapshotPeriod/dt))
 	data['dog'] = np.zeros((cachedTimesteps, 2))
 	data['dogVel'] = np.zeros((cachedTimesteps,2))
 	data['sheep'] = np.zeros((cachedTimesteps,NP, 2))
@@ -202,8 +202,9 @@ def doAccelerationStep(data):
 
 	data['sheepAcc'][itime] = -data['sheepVel'][itime] + data['sheepAccFlight'][itime]+ data['sheepAccFlocking'][itime]
 
-	indices = np.where(np.sqrt((data['sheepAcc'][itime]**2).sum(axis = 1)) > accCap)
-	data['sheepAcc'][itime][indices] = accCap*data['sheepAcc'][itime][indices]/np.transpose(np.tile(np.sqrt((data['sheepAcc'][itime][indices]**2).sum(axis = 1)), (2, 1)))
+	if cap == 'On':
+		indices = np.where(np.sqrt((data['sheepAcc'][itime]**2).sum(axis = 1)) > accCap)
+		data['sheepAcc'][itime][indices] = accCap*data['sheepAcc'][itime][indices]/np.transpose(np.tile(np.sqrt((data['sheepAcc'][itime][indices]**2).sum(axis = 1)), (2, 1)))
 
 	#Acceleration of dog
 	predMinusPrey = data['sheep'][itime] - data['dog'][itime]
@@ -229,9 +230,9 @@ def doAccelerationStep(data):
 		data['forceSheep'][itime] = np.array(map(lambda i: np.nansum(np.fromfunction(lambda j,k: A*np.exp((sheepSize*2 - dist_ij[i,j])/B)*(data['sheep'][itime][i,k] - data['sheep'][itime][j,k])/dist_ij[i,j],(NP,2),dtype=int),axis=0),range(NP)))
 
 	if sheepSheepInteration == 'On':
-		data['sheepAcc'][itime] += data['forceWalls'][itime]/sheepMass + data['forceSheep'][itime]/sheepMass
+		data['sheepAcc'][itime] = (data['sheepAcc'][itime]  + data['forceWalls'][itime] + data['forceSheep'][itime])/sheepMass
 	else:
-		data['sheepAcc'][itime] += data['forceWalls'][itime]/sheepMass
+		data['sheepAcc'][itime] = (data['sheepAcc'][itime] + data['forceWalls'][itime])/sheepMass
 
 	if timeStepMethod == 'Euler':
 		#Euler time step

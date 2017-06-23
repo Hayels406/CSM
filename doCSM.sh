@@ -1,7 +1,7 @@
 #!/bin/sh
 python CSM.py
 mkdir -p frames
-rm frames/*
+rm -f frames/*
 python ~/Documents/CSM/plotFrames.py
 p=`pwd`
 vid=`echo ${p##*/}`
