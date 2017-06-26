@@ -69,7 +69,7 @@ def init():
 	else:
 		sys.exit("Error: updateMethod not recognized!")
 	if segments == 'On':
-		data['interactingSheep'] = []
+		data['interactingSheep'] = np.zeros((cachedTimesteps, NP))
 	return data
 
 def initCond(data):
@@ -215,7 +215,8 @@ def doAccelerationStep(data):
 		rangeLoc = locs[maxLoc: maxLoc+2]
 		sheep = data['sheep'][itime][(np.array(angles) > rangeLoc[0]) &  (np.array(angles) < rangeLoc[1])]
 		numberInteractingSheep = np.shape(sheep)[0]
-		data['interactingSheep'].append((np.arange(NP)[(np.array(angles) > rangeLoc[0]) &  (np.array(angles) < rangeLoc[1])]).tolist())
+		data['interactingSheep'][itime] = ((np.array(angles) > rangeLoc[0]) &  (np.array(angles) < rangeLoc[1])).tolist()
+
 	else:
 		sheep = data['sheep'][itime]
 		numberInteractingSheep = NP
