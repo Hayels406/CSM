@@ -11,7 +11,7 @@ from scipy.spatial.distance import cdist
 sys.dont_write_bytecode = True
 sys.path.insert(0,os.getcwd())
 from params import *
-
+segments = 'Off'
 
 
 def makeSquareWalls(wallTop,wallBottom,wallLeft,wallRight):
@@ -68,7 +68,8 @@ def init():
 		data['Ffunc'] = np.zeros((cachedTimesteps,NP,2))
 	else:
 		sys.exit("Error: updateMethod not recognized!")
-
+	if segments == 'On':
+		data['interactingSheep'] = []
 	return data
 
 def initCond(data):
@@ -207,10 +208,23 @@ def doAccelerationStep(data):
 		data['sheepAcc'][itime][indices] = accCap*data['sheepAcc'][itime][indices]/np.transpose(np.tile(np.sqrt((data['sheepAcc'][itime][indices]**2).sum(axis = 1)), (2, 1)))
 
 	#Acceleration of dog
-	predMinusPrey = data['sheep'][itime] - data['dog'][itime]
+	if segments == 'On':
+		angles = [np.arctan2(i[1], i[0]) for i in np.tile(data['dog'][itime], (NP, 1)) - data['sheep'][itime]]
+		freq,locs = np.histogram(angles, bins = noSegments, density = False, normed = False)
+		maxLoc = np.argmax(freq)
+		rangeLoc = locs[maxLoc: maxLoc+2]
+		sheep = data['sheep'][itime][(np.array(angles) > rangeLoc[0]) &  (np.array(angles) < rangeLoc[1])]
+		numberInteractingSheep = np.shape(sheep)[0]
+		data['interactingSheep'].append((np.arange(NP)[(np.array(angles) > rangeLoc[0]) &  (np.array(angles) < rangeLoc[1])]).tolist())
+	else:
+		sheep = data['sheep'][itime]
+		numberInteractingSheep = NP
+
+	predMinusPrey = sheep - data['dog'][itime]
 	normStuff3 = np.transpose(np.tile(np.linalg.norm(predMinusPrey,axis=1),(2,1)))
-	data['Hfunc'][itime] = 1./(normStuff3**1. + 1.)
-	data['dogAcc'][itime] = (-data['dogVel'][itime] + c/NP*(predMinusPrey*(normStuff3**(-1))*data['Hfunc'][itime]).sum(axis=0))/tau
+	data['Hfunc'][itime][:numberInteractingSheep] = 1./(normStuff3**1. + 1.)
+	data['Hfunc'][itime][numberInteractingSheep:] = np.nan
+	data['dogAcc'][itime] = (-data['dogVel'][itime] + c/numberInteractingSheep*(predMinusPrey*(normStuff3**(-1))*data['Hfunc'][itime][:numberInteractingSheep]).sum(axis=0))/tau
 	if normDog == 'On':
 		data['dogAcc'][itime] = data['dogAcc'][itime]/np.transpose(np.tile(np.sqrt((data['dogAcc'][itime]**2).sum()) ,(2,1)))
 
