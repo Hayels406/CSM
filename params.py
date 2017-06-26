@@ -1,4 +1,4 @@
-TF = 20000.
+TF = 2000.
 dt = 0.1
 NP = 200
 a = 0.01
@@ -17,6 +17,7 @@ n = 100
 visualDist = 20.
 tau = 1.
 accCap = 1.
+noSegments = 20.
 
 timeStepMethod = 'Adaptive'   #Euler or Adaptive
 updateMethod = 'Acceleration' #Acceleration or Velocity
@@ -27,6 +28,7 @@ allSheepSeeDog = 'On' #Can all sheep see dog?
 gaussian = 'On'
 normDog = 'Off'
 cap = 'Off'
+segments = 'On'
 
 wallType = 'Square'
 wallLeft = -50
@@ -34,8 +36,8 @@ wallRight = 50
 wallBottom = -50
 wallTop = 50
 
-snapshotPeriod = 200.0 #units of time
-plotPeriod = 20. #units of time
+snapshotPeriod = 2000.0 #units of time
+plotPeriod = 50. #units of time
 plot = 'On' #On or Off
 savePlotPng = 'Off' #On or Off
 saveDataH5 = 'Off'
