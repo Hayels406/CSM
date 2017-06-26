@@ -17,6 +17,7 @@ n = 199
 visualDist = 20.
 tau = 1.
 accCap = 1.
+noSegments = 20.
 
 timeStepMethod = 'Adaptive'   #Euler or Adaptive
 updateMethod = 'Acceleration' #Acceleration or Velocity
@@ -26,6 +27,8 @@ sheepSheepInteration = 'On' #F_ij term
 allSheepSeeDog = 'On'       #Can all the sheep see the dog
 gaussian = 'Off'            #New f function
 normDog = 'Off'
+cap = 'Off'
+segments = 'Off'
 
 wallType = 'Square'
 wallLeft = -50
