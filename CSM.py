@@ -10,9 +10,8 @@ from scipy.spatial import Voronoi
 from scipy.spatial.distance import cdist
 sys.dont_write_bytecode = True
 sys.path.insert(0,os.getcwd())
+from defaultParams import *
 from params import *
-segments = 'Off'
-
 
 def makeSquareWalls(wallTop,wallBottom,wallLeft,wallRight):
 	#Walls defined by four lines: Ax+By+C = 0

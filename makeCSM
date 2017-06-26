@@ -8,15 +8,19 @@ mkdir -p $DATE
 cd $DATE
 if [ -f $INSTALLDIR/params.py.dist ]; then
 	cp $INSTALLDIR/params.py.dist ./params.py
+        ln -s $INSTALLDIR/params.py.dist ./defaultParams.py
 	ln -s $INSTALLDIR/CSM.py ./CSM.py
 fi
 
 if [ -f $INSTALLDIR_HOME/params.py.dist ]; then
 	cp $INSTALLDIR_HOME/params.py.dist ./params.py
+        ln -s $INSTALLDIR_HOME/params.py.dist ./defaultParams.py
 	ln -s $INSTALLDIR_HOME/CSM.py ./CSM.py
 fi
 
 if [ -f $INSTALLDIR_TOPSY/params.py.dist ]; then
 	cp $INSTALLDIR_TOPSY/params.py.dist ./params.py
+        ln -s $INSTALLDIR_TOPSY/params.py.dist ./defaultParams.py
+        ln -s $INSTALLDIR_TOPSY/job.qsub ./job.qsub
 	ln -s $INSTALLDIR_TOPSY/CSM.py ./CSM.py
 fi
