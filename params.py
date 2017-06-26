@@ -36,11 +36,11 @@ wallRight = 50
 wallBottom = -50
 wallTop = 50
 
-snapshotPeriod = 2000.0 #units of time
+snapshotPeriod = 1000.0 #units of time
 plotPeriod = 50. #units of time
-plot = 'On' #On or Off
+plot = 'Off' #On or Off
 savePlotPng = 'Off' #On or Off
-saveDataH5 = 'Off'
+saveDataH5 = 'On'
 
 dog_init = [-5., -10.]		    #np.random.rand(2)*3.0+1.
 sheep_init = 'Random'		#Random or Grid
