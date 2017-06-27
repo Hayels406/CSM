@@ -54,3 +54,4 @@ fileName = 'data-0001000.h5'
 #Plotting tweaks
 showSheepDogCanSee = 'Off'
 showDogInfluence = 'Off'
+segmentColours = 'Off'

@@ -1,4 +1,5 @@
 #!/bin/sh
+rm -f *.h5
 python CSM.py
 mkdir -p frames
 rm -f frames/*

@@ -333,11 +333,16 @@ def plotDataPositions(data, tstep, dQuiv, sQuiv, savePlotPng):
 	colorQuiver = np.zeros(NP)
 	if showSheepDogCanSee == 'On':
 		colorQuiver[data['dog_index_neighbours']] = 1.
-		if showDogInfluence == 'On':
-			sys.exit('You cannot show both which sheep can see the dog and which sheep are under the dogs influence')
+		if showDogInfluence == 'On' or segmentColours == 'On':
+			sys.exit('You cannot show both multiple colourings')
 	elif showDogInfluence == 'On':
 		colorQuiver[(sheepTheta > dogTheta - np.pi/16 ) * (sheepTheta < dogTheta + np.pi/16)] = 1
-
+		if showSheepDogCanSee == 'On' or segmentColours == 'On':
+			sys.exit('You cannot show both multiple colourings')
+	elif segmentColours == 'On':
+		colorQuiver = data['interactingSheep'][tstep-1]
+		if showDogInfluence == 'On' or showSheepDogCanSee == 'On':
+			sys.exit('You cannot show both multiple colourings')
 	dQuiv.set_offsets(np.transpose([data['dog'][tstep, 0], data['dog'][tstep, 1]]))
 	dQuiv.set_UVC(np.cos(dogTheta),np.sin(dogTheta))
 	sQuiv.set_offsets(np.transpose([data['sheep'][tstep,:, 0], data['sheep'][tstep,:, 1]]))

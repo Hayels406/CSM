@@ -37,9 +37,9 @@ for dataName in files:
         av = np.append(av, np.sqrt((data['sheepAcc']**2).sum(axis = 2)).mean(axis = 1))
     t = np.append(t, data['t'], axis = 0)
 
-plt.plot(t[10:], acc[10:, :], alpha = 0.2)
-plt.plot(t[10:], av[10:,])
-plt.plot(t[10:], maxAcc[10:], color = 'r', ls = '--')
+plt.plot(t[t<=2000][10:], acc[t<=2000][10:, :], alpha = 0.2)
+plt.plot(t[t<=2000][10:], av[t<=2000][10:,])
+plt.plot(t[t<=2000][10:], np.array(maxAcc)[t<=2000][10:], color = 'r', ls = '--')
 plt.yscale('log')
 plt.ylabel('log(Acceleration)')
 plt.xlabel('Time')
