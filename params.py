@@ -17,7 +17,7 @@ n = 100
 visualDist = 20.
 tau = 1.
 accCap = 1.
-noSegments = 20.
+noSegments = 6
 
 timeStepMethod = 'Adaptive'   #Euler or Adaptive
 updateMethod = 'Acceleration' #Acceleration or Velocity
@@ -25,7 +25,7 @@ flocking = 'PredatorPrey'           #PredatorPrey, Vicsek, TopoVicsek
 
 sheepSheepInteration = 'On' #F_ij term
 allSheepSeeDog = 'On' #Can all sheep see dog?
-gaussian = 'On'
+gaussian = 'Off'
 normDog = 'Off'
 cap = 'Off'
 segments = 'On'
@@ -36,9 +36,9 @@ wallRight = 50
 wallBottom = -50
 wallTop = 50
 
-snapshotPeriod = 1000.0 #units of time
+snapshotPeriod = 5000.0 #units of time
 plotPeriod = 50. #units of time
-plot = 'Off' #On or Off
+plot = 'On' #On or Off
 savePlotPng = 'Off' #On or Off
 saveDataH5 = 'On'
 
@@ -54,3 +54,4 @@ fileName = 'data-0000200.h5'
 #plotting tweaks
 showSheepDogCanSee = 'Off'
 showDogInfluence = 'Off'
+segmentColours = 'On'
