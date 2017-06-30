@@ -224,7 +224,7 @@ def doAccelerationStep(data):
 	normStuff3 = np.transpose(np.tile(np.linalg.norm(predMinusPrey,axis=1),(2,1)))
 	data['Hfunc'][itime][:numberInteractingSheep] = 1./(normStuff3**1. + 1.)
 	data['Hfunc'][itime][numberInteractingSheep:] = np.nan
-	data['dogAcc'][itime] = (-data['dogVel'][itime] + c/numberInteractingSheep*(predMinusPrey*(normStuff3**(-1))*data['Hfunc'][itime][:numberInteractingSheep]).sum(axis=0))/massDog*tau
+	data['dogAcc'][itime] = (-data['dogVel'][itime] + c/numberInteractingSheep*(predMinusPrey*(normStuff3**(-1))*data['Hfunc'][itime][:numberInteractingSheep]).sum(axis=0))/dogMass*tau
 	if normDog == 'On':
 		data['dogAcc'][itime] = data['dogAcc'][itime]/np.transpose(np.tile(np.sqrt((data['dogAcc'][itime]**2).sum()) ,(2,1)))
 
