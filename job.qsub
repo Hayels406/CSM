@@ -1,16 +1,17 @@
 #!/bin/bash
 #$ -cwd
 #$ -S /bin/bash
--l h_vmem=40G
+#$ -l h_vmem=40G
 
 module load python/2.7.9
 module load hdf5
 module load topsy-openmpi
 module load ffmpeg/2.8.6 
 
+rm -f *.h5
 python CSM.py
 mkdir -p frames
-rm frames/*
+rm -f frames/*
 python ~/CSM/plotFrames.py
 p=`pwd`
 vid=`echo ${p##*/}`
