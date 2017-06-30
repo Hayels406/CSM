@@ -11,6 +11,7 @@ B = 0.08
 epsilon = dt**6
 sheepSize = 0.45
 sheepMass = 60.
+dogMass = 17.
 
 r = 10.
 n = 100
