@@ -24,7 +24,7 @@ def init():
 	#Sets up main data structure
 	#Returns: dictionary of simulation data
 	data = dict()
-	cachedTimesteps = 2*int(round(snapshotPeriod/dt))
+	cachedTimesteps = 3*int(round(snapshotPeriod/dt))
 	data['dog'] = np.zeros((cachedTimesteps, 2))
 	data['dogVel'] = np.zeros((cachedTimesteps,2))
 	data['sheep'] = np.zeros((cachedTimesteps,NP, 2))
