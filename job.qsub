@@ -1,0 +1,24 @@
+#!/bin/bash
+#$ -cwd
+#$ -S /bin/bash
+-l h_vmem=40G
+
+module load python/2.7.9
+module load hdf5
+module load topsy-openmpi
+module load ffmpeg/2.8.6 
+
+python CSM.py
+mkdir -p frames
+rm frames/*
+python ~/CSM/plotFrames.py
+p=`pwd`
+vid=`echo ${p##*/}`
+ffmpeg -framerate 15 -pattern_type glob -i 'frames/*.png' -vcodec mpeg4 -qscale:v 2 frames/${vid}.mp4
+mkdir -p plots
+python ~/CSM/plotSheepAcceleration.py
+python ~/CSM/plotSheepVelocity.py
+python ~/CSM/plotDogAcceleration.py
+python ~/CSM/plotDogVelocity.py
+python ~/CSM/plotTimeStep.py
+python ~/CSM/histSheepAcceleration.py
