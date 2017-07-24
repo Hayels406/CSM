@@ -24,7 +24,7 @@ def init():
 	#Sets up main data structure
 	#Returns: dictionary of simulation data
 	data = dict()
-	cachedTimesteps = 3*int(round(snapshotPeriod/dt))
+	cachedTimesteps = 6*int(round(snapshotPeriod/dt))
 	data['dog'] = np.zeros((cachedTimesteps, 2))
 	data['dogVel'] = np.zeros((cachedTimesteps,2))
 	data['sheep'] = np.zeros((cachedTimesteps,NP, 2))
@@ -51,6 +51,11 @@ def init():
 		data['dist_dw'] = np.zeros((cachedTimesteps,4))
 		if sheepSheepInteration == 'On':
 			data['forceSheep'] = np.zeros((cachedTimesteps, NP, 2))
+	elif wallType == 'Circular':
+		data['walls'] = wallTop
+		data['dist_iw'] = np.zeros((cachedTimesteps,NP))
+		data['forceWalls'] = np.zeros((cachedTimesteps,NP,2))
+		data['dist_dw'] = np.zeros((cachedTimesteps))
 	else:
 		data['walls'] = []
 
@@ -79,13 +84,10 @@ def initCond(data):
 		data['sheepVel'][0] = np.zeros((NP, 2))
 	elif sheep_init == 'Random':
 		print 'Creating initial locations ...'
-		min_dist_ij = 0.
-		while min_dist_ij < 1.0:
-			data['sheep'][0,:,0] = np.random.rand(NP)*sheep_area - sheep_area/2.
-			data['sheep'][0,:,1] = np.random.rand(NP)*sheep_area - sheep_area/2.
-			dist_ij = cdist(data['sheep'][itime], data['sheep'][itime])
-			min_dist_ij = np.min(dist_ij[np.nonzero(dist_ij)])
+		data['sheep'][0,:,0] = np.random.rand(NP)*sheep_area - sheep_area/2.
+		data['sheep'][0,:,1] = np.random.rand(NP)*sheep_area - sheep_area/2.
 		sheepTheta = np.random.rand(NP)*2*math.pi
+
 		data['sheepVel'][0,:,0] = sheep_vel_init*np.cos(sheepTheta)
 		data['sheepVel'][0,:,1] = sheep_vel_init*np.sin(sheepTheta)
 		data['sheepVel'][-1,:,0] = sheep_vel_init*np.cos(sheepTheta)
@@ -155,13 +157,14 @@ def doAccelerationStep(data):
 	#Flocking
 	if flocking == 'PredatorPrey':
 		tree = KDTree(data['sheep'][itime])
-		idx = tree.query(data['sheep'][itime], n+1)[1][:,1:]
-		distMatrixNotMe = np.array(map(lambda j:data['sheep'][itime,j] - data['sheep'][itime],range(NP)))
-		normStuff = np.transpose(np.tile(np.transpose(np.linalg.norm(np.array(map(lambda j:data['sheep'][itime,j] - data['sheep'][itime],range(NP))), axis = 2)),(2,1,1)))
+		idx = tree.query(data['sheep'][itime], groupSize)[1][:,1:]
+		distMatrix = np.array(map(lambda j:data['sheep'][itime,j] - data['sheep'][itime],range(NP)))
+		normStuff = np.linalg.norm(distMatrix, axis = 2).reshape(NP,NP,1)
 		if gaussian == 'On':
-			data['sheepAccFlocking'][itime] = f/NP*np.array(map(lambda j:((normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*np.exp(-normStuff[j,idx[j],:]**2/visualDist**2)*distMatrixNotMe[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(NP))).sum(axis = 1)
+			data['sheepAccFlocking'][itime] = (f/groupSize)*np.array(map(lambda j:((normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*np.exp(-normStuff[j,idx[j],:]**2/visualDist**2)*distMatrixNotMe[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(NP))).sum(axis = 1)
 		else:
-			data['sheepAccFlocking'][itime] = f/NP*np.array(map(lambda j:((normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*distMatrixNotMe[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(NP))).sum(axis = 1)
+			data['sheepAccFlocking'][itime] = (f/groupSize)*np.array(map(lambda j:((normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(NP))).sum(axis = 1)
+
 	elif flocking == 'Vicsek':
 		tree = KDTree(data['sheep'][itime])
 		idx = tree.query_radius(data['sheep'][itime], r)
@@ -188,7 +191,7 @@ def doAccelerationStep(data):
 
 	#Flight
 	preyMinusPred = data['sheep'][itime] - data['dog'][itime]
-	normStuff2 = np.transpose(np.tile(np.linalg.norm(preyMinusPred,axis=1),(2,1)))
+	normStuff2 = np.linalg.norm(preyMinusPred,axis=1).reshape(NP,1)
 	data['Gfunc'][itime] = b*normStuff2**(-1)
 
 	if allSheepSeeDog == 'On':
@@ -200,7 +203,7 @@ def doAccelerationStep(data):
 	else:
 		sys.exit('Invalid allSheepSeeDog:'+allSheepSeeDog+' in doAccelerationStep()')
 
-	data['sheepAcc'][itime] = -data['sheepVel'][itime] + data['sheepAccFlight'][itime]+ data['sheepAccFlocking'][itime]
+	data['sheepAcc'][itime] = (data['sheepAccFlight'][itime] + data['sheepAccFlocking'][itime] - data['sheepVel'][itime])/sheepMass
 
 	if cap == 'On':
 		indices = np.where(np.sqrt((data['sheepAcc'][itime]**2).sum(axis = 1)) > accCap)
@@ -221,32 +224,49 @@ def doAccelerationStep(data):
 		numberInteractingSheep = NP
 
 	predMinusPrey = sheep - data['dog'][itime]
-	normStuff3 = np.transpose(np.tile(np.linalg.norm(predMinusPrey,axis=1),(2,1)))
-	data['Hfunc'][itime][:numberInteractingSheep] = 1./(normStuff3**1. + 1.)
+	normStuff3 = np.linalg.norm(preyMinusPred,axis=1).reshape(NP,1)
+	data['Hfunc'][itime][0:numberInteractingSheep] = 1./(normStuff3**5. + 1.)
 	data['Hfunc'][itime][numberInteractingSheep:] = np.nan
-	data['dogAcc'][itime] = (-data['dogVel'][itime] + c/numberInteractingSheep*(predMinusPrey*(normStuff3**(-1))*data['Hfunc'][itime][:numberInteractingSheep]).sum(axis=0))/dogMass*tau
+	data['dogAcc'][itime] = (-data['dogVel'][itime] + c/numberInteractingSheep*(predMinusPrey*(normStuff3**(-1))*data['Hfunc'][itime][:numberInteractingSheep]).sum(axis=0))/dogMass
+
 	if normDog == 'On':
 		data['dogAcc'][itime] = data['dogAcc'][itime]/np.transpose(np.tile(np.sqrt((data['dogAcc'][itime]**2).sum()) ,(2,1)))
 
-	for wall in range(len(data['walls']['eqn'])):
-		w = data['walls']['eqn'][wall]
-		data['dist_iw'][itime,:,wall] = np.abs(w[0]*data['sheep'][itime,:,0] + w[1]*data['sheep'][itime,:,1] + w[2])/np.sqrt(w[0]**2 + w[1]**2)
-		data['forceWalls'][itime,:,0] += A*np.exp((sheepSize - data['dist_iw'][itime,:,wall])/B)*data['walls']['n'][wall][0]
-		data['forceWalls'][itime,:,1] += A*np.exp((sheepSize - data['dist_iw'][itime,:,wall])/B)*data['walls']['n'][wall][1]
+	if wallType == 'Square':
+		for wall in range(len(data['walls']['eqn'])):
+			w = data['walls']['eqn'][wall]
+			data['dist_iw'][itime,:,wall] = np.abs(w[0]*data['sheep'][itime,:,0] + w[1]*data['sheep'][itime,:,1] + w[2])/np.sqrt(w[0]**2 + w[1]**2)
+
+			data['forceWalls'][itime] += A*np.exp((np.dot(-data['walls']['n'][wall], data['sheep'][itime].T)-np.abs(w[2])+C)/B).reshape(NP,1)*data['walls']['n'][wall]
+
+	elif wallType == 'Circular':
+		distance = np.linalg.norm(data['sheep'][itime], axis = 1)
+		unit = data['sheep'][itime]/distance.reshape(NP,1)
+		data['dist_iw'][itime,:] = np.squeeze(data['walls'] - distance)
+		data['forceWalls'][itime] = -A*unit*np.exp((distance-data['walls']+C)/B ).reshape(NP,1)
 
 	dist_ij = cdist(data['sheep'][itime], data['sheep'][itime])
 	data['dist_ij']['max'][itime] = np.max(dist_ij)
-	data['dist_ij']['min'][itime] = np.min(dist_ij[np.nonzero(dist_ij)])
+	data['dist_ij']['min'][itime] = np.min(dist_ij[dist_ij>0])
 	data['dist_ij']['mean'][itime] = np.mean(dist_ij)
 
 	data['dist_id'][itime] = cdist(data['sheep'][itime], data['dog'][itime].reshape(1,2)).reshape(NP)
 	if sheepSheepInteration == 'On':
-		data['forceSheep'][itime] = np.array(map(lambda i: np.nansum(np.fromfunction(lambda j,k: A*np.exp((sheepSize*2 - dist_ij[i,j])/B)*(data['sheep'][itime][i,k] - data['sheep'][itime][j,k])/dist_ij[i,j],(NP,2),dtype=int),axis=0),range(NP)))
+		for i in range(NP):
+			data['forceSheep'][itime][i,:] =  np.nansum(np.fromfunction(lambda j,k: A*np.exp((sheepSize*2 - dist_ij[i,j])/B)*(data['sheep'][itime][i,k] - data['sheep'][itime][j,k])/dist_ij[i,j],(NP,2),dtype=int),axis=0)
+
+			#for j in range(NP):
+			#	if i==j:
+			#		continue
+			#	unv = (data['sheep'][itime][i,:] - data['sheep'][itime][j,:])/dist_ij[i,j]
+			#	ex = np.exp((sheepSize*2 - dist_ij[i,j])/B)
+			#	data['forceSheep'][itime][i,:] += A*unv*ex
+
 
 	if sheepSheepInteration == 'On':
-		data['sheepAcc'][itime] = (data['sheepAcc'][itime]  + data['forceWalls'][itime] + data['forceSheep'][itime])/sheepMass
+		data['sheepAcc'][itime] = data['sheepAcc'][itime]  + data['forceWalls'][itime] + data['forceSheep'][itime]
 	else:
-		data['sheepAcc'][itime] = (data['sheepAcc'][itime] + data['forceWalls'][itime])/sheepMass
+		data['sheepAcc'][itime] = data['sheepAcc'][itime] + data['forceWalls'][itime]
 
 	if timeStepMethod == 'Euler':
 		#Euler time step
@@ -310,7 +330,7 @@ def initPlot(data, savePlotPng):
 	norm = colors.BoundaryNorm(bounds, cmap.N)
 	dogQuiver = plt.quiver(data['dog'][0, 0], data['dog'][0, 1], np.cos(dogTheta), np.sin(dogTheta), scale = 30, color = 'red')
 	sheepQuiver = plt.quiver(data['sheep'][0,:,0], data['sheep'][0,:,1], np.cos(sheepTheta), np.sin(sheepTheta), scale = 30, cmap = cmap, norm = norm)
-	plt.axis([wallLeft,wallRight,wallBottom,wallTop])
+	plt.axis([wallLeft-0.25,wallRight+0.25,wallBottom-0.25,wallTop+0.25])
 	plt.axes().set_aspect('equal')
 	plotid = 0
 	if wallType == 'Square':
@@ -318,6 +338,11 @@ def initPlot(data, savePlotPng):
 		plt.axhline(wallBottom, color = 'r', lw = 5)
 		plt.axvline(wallLeft, color = 'r', lw = 5)
 		plt.axvline(wallRight, color = 'r', lw = 5)
+	elif wallType == 'Circular':
+		circle = plt.Circle((0,0), wallTop, color = 'r', lw = 5, fill = False)
+		fig = plt.gcf()
+		ax = fig.gca()
+		ax.add_artist(circle)
 
 	if savePlotPng == 'On':
 		plt.savefig('frames/'+str(0).zfill(7)+'.png')
