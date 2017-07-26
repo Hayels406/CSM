@@ -9,6 +9,7 @@ import os
 from glob import glob
 sys.dont_write_bytecode = True
 sys.path.insert(0,os.getcwd())
+from defaultParams import *
 from params import *
 
 

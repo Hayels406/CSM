@@ -9,6 +9,7 @@ import os
 from glob import glob
 sys.dont_write_bytecode = True
 sys.path.insert(0,os.getcwd())
+from defaultParams import *
 from params import *
 
 
@@ -30,14 +31,16 @@ for dataName in files:
         data['sheepVel'] = data['sheepVel'][0:itime]
         data['dog'] = data['dog'][0:itime]
         data['dogVel'] = data['dogVel'][0:itime]
-        data['interactingSheep'] = data['interactingSheep'][0:itime]
+        if segments == 'On':
+            data['interactingSheep'] = data['interactingSheep'][0:itime]
     else:
         data['t'] = data['t'][4:itime]
         data['sheep'] = data['sheep'][4:itime]
         data['sheepVel'] = data['sheepVel'][4:itime]
         data['dog'] = data['dog'][4:itime]
         data['dogVel'] = data['dogVel'][4:itime]
-        data['interactingSheep'] = data['interactingSheep'][4:itime]
+        if segments == 'On':
+            data['interactingSheep'] = data['interactingSheep'][4:itime]
 
     tstep = 0
     lastPlot = data['t'][tstep]
