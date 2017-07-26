@@ -52,7 +52,7 @@ def init():
 		if sheepSheepInteration == 'On':
 			data['forceSheep'] = np.zeros((cachedTimesteps, NP, 2))
 	elif wallType == 'Circular':
-		data['walls'] = wallTop
+		data['walls'] = [wallTop]
 		data['dist_iw'] = np.zeros((cachedTimesteps,NP))
 		data['forceWalls'] = np.zeros((cachedTimesteps,NP,2))
 		data['dist_dw'] = np.zeros((cachedTimesteps))
@@ -153,13 +153,27 @@ def doVelocityStep(data):
 #Acceleration
 ###############
 def doAccelerationStep(data):
+	emergencyWall = 'Off'
+	if emergencyWall == 'On':
+		#data['sheep'][itime-4:itime+1][:,:,1][:,data['sheep'][itime][:,1] > 5*wallTop] = wallTop
+		#data['sheep'][itime-4:itime+1][:,:,1][:,data['sheep'][itime][:,1] < 5*wallBottom] = wallBottom
+		#data['sheep'][itime-4:itime+1][:,:,0][:,data['sheep'][itime][:,0] > 5*wallRight] = wallRight
+		#data['sheep'][itime-4:itime+1][:,:,0][:,data['sheep'][itime][:,0] < 5*wallLeft] = wallLeft
+		print 'furthest up', data['sheep'][itime,np.where(np.max(data['sheep'][itime][:,1]) == data['sheep'][itime][:,1]),:]
+		print 'furthest right', data['sheep'][itime,np.where(np.max(data['sheep'][itime][:,0]) == data['sheep'][itime][:,0]),:]
+		print 'furthest down',data['sheep'][itime,np.where(np.min(data['sheep'][itime][:,1]) == data['sheep'][itime][:,1]),:]
+		print 'furthest left', data['sheep'][itime,np.where(np.min(data['sheep'][itime][:,0]) == data['sheep'][itime][:,0]),:]
+
+
+
+
 	#Acceleration of sheep
 	#Flocking
 	if flocking == 'PredatorPrey':
 		tree = KDTree(data['sheep'][itime])
 		idx = tree.query(data['sheep'][itime], groupSize)[1][:,1:]
 		distMatrix = np.array(map(lambda j:data['sheep'][itime,j] - data['sheep'][itime],range(NP)))
-		normStuff = np.linalg.norm(distMatrix, axis = 2).reshape(NP,NP,1)
+		normStuff = np.linalg.norm(distMatrix, axis = 2).reshape(NP,NP,1) + sheepSize
 		if gaussian == 'On':
 			data['sheepAccFlocking'][itime] = (f/groupSize)*np.array(map(lambda j:((normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*np.exp(-normStuff[j,idx[j],:]**2/visualDist**2)*distMatrixNotMe[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(NP))).sum(axis = 1)
 		else:
@@ -225,7 +239,7 @@ def doAccelerationStep(data):
 
 	predMinusPrey = sheep - data['dog'][itime]
 	normStuff3 = np.linalg.norm(preyMinusPred,axis=1).reshape(NP,1)
-	data['Hfunc'][itime][0:numberInteractingSheep] = 1./(normStuff3**5. + 1.)
+	data['Hfunc'][itime][0:numberInteractingSheep] = 1./(normStuff3**3. + 0.1)
 	data['Hfunc'][itime][numberInteractingSheep:] = np.nan
 	data['dogAcc'][itime] = (-data['dogVel'][itime] + c/numberInteractingSheep*(predMinusPrey*(normStuff3**(-1))*data['Hfunc'][itime][:numberInteractingSheep]).sum(axis=0))/dogMass
 
@@ -237,13 +251,15 @@ def doAccelerationStep(data):
 			w = data['walls']['eqn'][wall]
 			data['dist_iw'][itime,:,wall] = np.abs(w[0]*data['sheep'][itime,:,0] + w[1]*data['sheep'][itime,:,1] + w[2])/np.sqrt(w[0]**2 + w[1]**2)
 
+			#data['forceWalls'][itime] += A*np.exp(np.minimum((np.dot(-data['walls']['n'][wall], data['sheep'][itime].T)-np.abs(w[2])+C)/B, np.array([2.0]*NP))).reshape(NP,1)*data['walls']['n'][wall]
+
 			data['forceWalls'][itime] += A*np.exp((np.dot(-data['walls']['n'][wall], data['sheep'][itime].T)-np.abs(w[2])+C)/B).reshape(NP,1)*data['walls']['n'][wall]
 
 	elif wallType == 'Circular':
 		distance = np.linalg.norm(data['sheep'][itime], axis = 1)
 		unit = data['sheep'][itime]/distance.reshape(NP,1)
-		data['dist_iw'][itime,:] = np.squeeze(data['walls'] - distance)
-		data['forceWalls'][itime] = -A*unit*np.exp((distance-data['walls']+C)/B ).reshape(NP,1)
+		data['dist_iw'][itime,:] = np.squeeze(data['walls'][0] - distance)
+		data['forceWalls'][itime] = -A*unit*np.exp((distance-data['walls'][0]+C)/B ).reshape(NP,1)
 
 	dist_ij = cdist(data['sheep'][itime], data['sheep'][itime])
 	data['dist_ij']['max'][itime] = np.max(dist_ij)
@@ -339,7 +355,7 @@ def initPlot(data, savePlotPng):
 		plt.axvline(wallLeft, color = 'r', lw = 5)
 		plt.axvline(wallRight, color = 'r', lw = 5)
 	elif wallType == 'Circular':
-		circle = plt.Circle((0,0), wallTop, color = 'r', lw = 5, fill = False)
+		circle = plt.Circle((0,0), data['walls'][0], color = 'r', lw = 5, fill = False)
 		fig = plt.gcf()
 		ax = fig.gca()
 		ax.add_artist(circle)
@@ -422,6 +438,8 @@ def loadData(data,fn):
 		data['dist_iw'][0:itime+1] = np.copy(h5f['dist_iw'])
 		data['forceWalls'][0:itime+1] = np.copy(h5f['forceWalls'])
 		data['dist_dw'][0:itime+1] = np.copy(h5f['dist_dw'])
+	if wallType == 'Circular':
+		data['walls'] = np.copy(h5f['walls']).tolist()
 	else:
 		data['walls'] = []
 
