@@ -155,12 +155,8 @@ def doVelocityStep(data):
 #Acceleration
 ###############
 def doAccelerationStep(data):
-	emergencyWall = 'Off'
-	if emergencyWall == 'On':
-		#data['sheep'][itime-4:itime+1][:,:,1][:,data['sheep'][itime][:,1] > 5*wallTop] = wallTop
-		#data['sheep'][itime-4:itime+1][:,:,1][:,data['sheep'][itime][:,1] < 5*wallBottom] = wallBottom
-		#data['sheep'][itime-4:itime+1][:,:,0][:,data['sheep'][itime][:,0] > 5*wallRight] = wallRight
-		#data['sheep'][itime-4:itime+1][:,:,0][:,data['sheep'][itime][:,0] < 5*wallLeft] = wallLeft
+	#Prints the location of the prey furthest out
+	if emergencyCheck == 'On':
 		print 'furthest up', data['sheep'][itime,np.where(np.max(data['sheep'][itime][:,1]) == data['sheep'][itime][:,1]),:]
 		print 'furthest right', data['sheep'][itime,np.where(np.max(data['sheep'][itime][:,0]) == data['sheep'][itime][:,0]),:]
 		print 'furthest down',data['sheep'][itime,np.where(np.min(data['sheep'][itime][:,1]) == data['sheep'][itime][:,1]),:]
@@ -251,16 +247,17 @@ def doAccelerationStep(data):
 	if wallType == 'Square':
 		for wall in range(len(data['walls']['eqn'])):
 			w = data['walls']['eqn'][wall]
-			data['dist_iw'][itime,:,wall] = np.abs(w[0]*data['sheep'][itime,:,0] + w[1]*data['sheep'][itime,:,1] + w[2])/np.sqrt(w[0]**2 + w[1]**2)
 
-			#data['forceWalls'][itime] += A*np.exp(np.minimum((np.dot(-data['walls']['n'][wall], data['sheep'][itime].T)-np.abs(w[2])+C)/B, np.array([2.0]*NP))).reshape(NP,1)*data['walls']['n'][wall]
+			data['dist_iw'][itime,:,wall] = np.abs(w[0]*data['sheep'][itime,:,0] + w[1]*data['sheep'][itime,:,1] + w[2])/np.sqrt(w[0]**2 + w[1]**2)
 
 			data['forceWalls'][itime] += A*np.exp((np.dot(-data['walls']['n'][wall], data['sheep'][itime].T)-np.abs(w[2])+C)/B).reshape(NP,1)*data['walls']['n'][wall]
 
 	elif wallType == 'Circular':
 		distance = np.linalg.norm(data['sheep'][itime], axis = 1)
 		unit = data['sheep'][itime]/distance.reshape(NP,1)
+
 		data['dist_iw'][itime,:] = np.squeeze(data['walls'][0] - distance)
+
 		data['forceWalls'][itime] = -A*unit*np.exp((distance-data['walls'][0]+C)/B ).reshape(NP,1)
 
 	dist_ij = cdist(data['sheep'][itime], data['sheep'][itime])
@@ -272,14 +269,6 @@ def doAccelerationStep(data):
 	if sheepSheepInteration == 'On':
 		for i in range(NP):
 			data['forceSheep'][itime][i,:] =  np.nansum(np.fromfunction(lambda j,k: A*np.exp((sheepSize*2 - dist_ij[i,j])/B)*(data['sheep'][itime][i,k] - data['sheep'][itime][j,k])/dist_ij[i,j],(NP,2),dtype=int),axis=0)
-
-			#for j in range(NP):
-			#	if i==j:
-			#		continue
-			#	unv = (data['sheep'][itime][i,:] - data['sheep'][itime][j,:])/dist_ij[i,j]
-			#	ex = np.exp((sheepSize*2 - dist_ij[i,j])/B)
-			#	data['forceSheep'][itime][i,:] += A*unv*ex
-
 
 	if sheepSheepInteration == 'On':
 		data['sheepAcc'][itime] = data['sheepAcc'][itime]  + data['forceWalls'][itime] + data['forceSheep'][itime]
@@ -293,6 +282,7 @@ def doAccelerationStep(data):
 		data['dog'][itime + 1] = data['dog'][itime] + data['dogVel'][itime]*dt
 		data['sheep'][itime + 1] = data['sheep'][itime] + data['sheepVel'][itime]*dt
 		data['t'][itime+1] = data['t'][itime] + dt
+
 	elif timeStepMethod == 'Adaptive':
 		#Adaptive time step
 		if itime == 0:
