@@ -10,7 +10,9 @@ from scipy.spatial import Voronoi
 from scipy.spatial.distance import cdist
 sys.dont_write_bytecode = True
 sys.path.insert(0,os.getcwd())
+
 from defaultParams import *
+from fixedParams import *
 from params import *
 
 def makeSquareWalls(wallTop,wallBottom,wallLeft,wallRight):
@@ -24,7 +26,7 @@ def init():
 	#Sets up main data structure
 	#Returns: dictionary of simulation data
 	data = dict()
-	cachedTimesteps = 6*int(round(snapshotPeriod/dt))
+	cachedTimesteps = 7*int(round(snapshotPeriod/dt))
 	data['dog'] = np.zeros((cachedTimesteps, 2))
 	data['dogVel'] = np.zeros((cachedTimesteps,2))
 	data['sheep'] = np.zeros((cachedTimesteps,NP, 2))
@@ -390,7 +392,7 @@ def plotDataPositions(data, tstep, dQuiv, sQuiv, savePlotPng):
 	sQuiv.set_UVC(np.cos(sheepTheta), np.sin(sheepTheta), colorQuiver)
 
 	if savePlotPng == 'On':
-		plt.savefig('frames/'+str(int(np.floor(data['t'][tstep]))).zfill(7)+'.png')
+		plt.savefig('frames/'+str(int(np.floor(data['t'][tstep]/plotPeriod))).zfill(7)+'.png')
 	else:
 		plt.pause(0.005)
 
