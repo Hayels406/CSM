@@ -61,6 +61,9 @@ def init():
 	else:
 		data['walls'] = []
 
+	if predation == 'On':
+		data['alive'] = np.zeros((cachedTimesteps, NP)) == 0
+
 	if updateMethod == 'Velocity':
 		data['bterm'] = np.zeros((cachedTimesteps,NP,2))
 		data['aterm'] = np.zeros((cachedTimesteps,NP,2))
@@ -163,19 +166,30 @@ def doAccelerationStep(data):
 		print 'furthest left', data['sheep'][itime,np.where(np.min(data['sheep'][itime][:,0]) == data['sheep'][itime][:,0]),:]
 
 
+	data['dist_id'][itime] = cdist(data['sheep'][itime], data['dog'][itime].reshape(1,2)).reshape(NP)
+	if predation == 'On':
+		if np.min(data['dist_id'][itime]) < predation_length_scale:
+			prey_too_close = np.where(data['dist_id'][itime] == np.min(data['dist_id'][itime][data['alive'][itime]]))[0][0]
+
+			print 'predation', prey_too_close
+
+			data['alive'][itime:][:,prey_too_close] = False
 
 
 	#Acceleration of sheep
 	#Flocking
 	if flocking == 'PredatorPrey':
-		tree = KDTree(data['sheep'][itime])
-		idx = tree.query(data['sheep'][itime], groupSize)[1][:,1:]
-		distMatrix = np.array(map(lambda j:data['sheep'][itime,j] - data['sheep'][itime],range(NP)))
-		normStuff = np.linalg.norm(distMatrix, axis = 2).reshape(NP,NP,1) + sheepSize
+		tree = KDTree(data['sheep'][itime][data['alive'][itime]])
+		idx = tree.query(data['sheep'][itime][data['alive'][itime]], np.min([groupSize, sum(data['alive'][itime])]))[1][:,1:]
+		distMatrix = np.array(map(lambda j:data['sheep'][itime,j] - data['sheep'][itime][data['alive'][itime]],np.array(range(NP))[data['alive'][itime]]))
+		if predation == 'Off':
+			normStuff = np.linalg.norm(distMatrix, axis = 2).reshape(NP,NP,1) + sheepSize
+		else:
+			normStuff = np.linalg.norm(distMatrix, axis = 2).reshape(sum(data['alive'][itime]), sum(data['alive'][itime]), 1) + sheepSize
 		if gaussian == 'On':
 			data['sheepAccFlocking'][itime] = (f/groupSize)*np.array(map(lambda j:((normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*np.exp(-normStuff[j,idx[j],:]**2/visualDist**2)*distMatrixNotMe[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(NP))).sum(axis = 1)
 		else:
-			data['sheepAccFlocking'][itime] = (f/groupSize)*np.array(map(lambda j:((normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(NP))).sum(axis = 1)
+			data['sheepAccFlocking'][itime][data['alive'][itime]] = (f/groupSize)*np.array(map(lambda j:((normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(sum(data['alive'][itime])))).sum(axis = 1)
 
 	elif flocking == 'Vicsek':
 		tree = KDTree(data['sheep'][itime])
@@ -202,12 +216,15 @@ def doAccelerationStep(data):
 		sys.exit('Invalid flocking mechanisim: ' + flocking + ' in doAccelerationStep')
 
 	#Flight
-	preyMinusPred = data['sheep'][itime] - data['dog'][itime]
-	normStuff2 = np.linalg.norm(preyMinusPred,axis=1).reshape(NP,1)
-	data['Gfunc'][itime] = b*normStuff2**(-1)
+	preyMinusPred = data['sheep'][itime][data['alive'][itime]] - data['dog'][itime]
+	if predation == 'Off':
+		normStuff2 = np.linalg.norm(preyMinusPred,axis=1).reshape(NP,1)
+	else:
+		normStuff2 = np.linalg.norm(preyMinusPred, axis = 1).reshape(sum(data['alive'][itime]),1)
+	data['Gfunc'][itime][data['alive'][itime]] = b*normStuff2**(-1)
 
 	if allSheepSeeDog == 'On':
-		data['sheepAccFlight'][itime] = data['Gfunc'][itime]*preyMinusPred*(normStuff2**(-1))
+		data['sheepAccFlight'][itime][data['alive'][itime]] = data['Gfunc'][itime][data['alive'][itime]]*preyMinusPred*(normStuff2**(-1))
 	elif allSheepSeeDog == 'Off':
 		vor = Voronoi(np.concatenate((data['sheep'][itime], data['dog'][itime][None,:]), axis = 0))
 		data['dog_index_neighbours'] = np.array([t[1] for t in [(b1, a1) for a1, b1 in vor.ridge_dict.keys()] + vor.ridge_dict.keys() if t[0] == NP]) #Calculates the Voronoi neighbours of dog
@@ -215,7 +232,7 @@ def doAccelerationStep(data):
 	else:
 		sys.exit('Invalid allSheepSeeDog:'+allSheepSeeDog+' in doAccelerationStep()')
 
-	data['sheepAcc'][itime] = (data['sheepAccFlight'][itime] + data['sheepAccFlocking'][itime] - data['sheepVel'][itime])/sheepMass
+	data['sheepAcc'][itime][data['alive'][itime]] = (data['sheepAccFlight'][itime][data['alive'][itime]] + data['sheepAccFlocking'][itime][data['alive'][itime]] - data['sheepVel'][itime][data['alive'][itime]])/sheepMass
 
 	if cap == 'On':
 		indices = np.where(np.sqrt((data['sheepAcc'][itime]**2).sum(axis = 1)) > accCap)
@@ -232,11 +249,12 @@ def doAccelerationStep(data):
 		data['interactingSheep'][itime] = ((np.array(angles) > rangeLoc[0]) &  (np.array(angles) < rangeLoc[1])).tolist()
 
 	else:
-		sheep = data['sheep'][itime]
-		numberInteractingSheep = NP
+		sheep = data['sheep'][itime][data['alive'][itime]]
+		numberInteractingSheep = sum(data['alive'][itime])
 
 	predMinusPrey = sheep - data['dog'][itime]
-	normStuff3 = np.linalg.norm(preyMinusPred,axis=1).reshape(NP,1)
+
+	normStuff3 = np.linalg.norm(preyMinusPred,axis=1).reshape(numberInteractingSheep,1)
 	data['Hfunc'][itime][0:numberInteractingSheep] = 1./(normStuff3**3. + 0.1)
 	data['Hfunc'][itime][numberInteractingSheep:] = np.nan
 	data['dogAcc'][itime] = (-data['dogVel'][itime] + c/numberInteractingSheep*(predMinusPrey*(normStuff3**(-1))*data['Hfunc'][itime][:numberInteractingSheep]).sum(axis=0))/dogMass
@@ -248,9 +266,9 @@ def doAccelerationStep(data):
 		for wall in range(len(data['walls']['eqn'])):
 			w = data['walls']['eqn'][wall]
 
-			data['dist_iw'][itime,:,wall] = np.abs(w[0]*data['sheep'][itime,:,0] + w[1]*data['sheep'][itime,:,1] + w[2])/np.sqrt(w[0]**2 + w[1]**2)
+			data['dist_iw'][itime,:,wall][data['alive'][itime]] = (np.abs(w[0]*data['sheep'][itime,:,0] + w[1]*data['sheep'][itime,:,1] + w[2])/np.sqrt(w[0]**2 + w[1]**2))[data['alive'][itime]]
 
-			data['forceWalls'][itime] += A*np.exp((np.dot(-data['walls']['n'][wall], data['sheep'][itime].T)-np.abs(w[2])+C)/B).reshape(NP,1)*data['walls']['n'][wall]
+			data['forceWalls'][itime][data['alive'][itime]] += (A*np.exp((np.dot(-data['walls']['n'][wall], data['sheep'][itime].T)-np.abs(w[2])+C)/B).reshape(NP,1)*data['walls']['n'][wall])[data['alive'][itime]]
 
 	elif wallType == 'Circular':
 		distance = np.linalg.norm(data['sheep'][itime], axis = 1)
@@ -260,12 +278,12 @@ def doAccelerationStep(data):
 
 		data['forceWalls'][itime] = -A*unit*np.exp((distance-data['walls'][0]+C)/B ).reshape(NP,1)
 
-	dist_ij = cdist(data['sheep'][itime], data['sheep'][itime])
+	dist_ij = cdist(data['sheep'][itime][data['alive'][itime]], data['sheep'][itime][data['alive'][itime]])
 	data['dist_ij']['max'][itime] = np.max(dist_ij)
 	data['dist_ij']['min'][itime] = np.min(dist_ij[dist_ij>0])
 	data['dist_ij']['mean'][itime] = np.mean(dist_ij)
 
-	data['dist_id'][itime] = cdist(data['sheep'][itime], data['dog'][itime].reshape(1,2)).reshape(NP)
+
 	if sheepSheepInteration == 'On':
 		for i in range(NP):
 			data['forceSheep'][itime][i,:] =  np.nansum(np.fromfunction(lambda j,k: A*np.exp((sheepSize*2 - dist_ij[i,j])/B)*(data['sheep'][itime][i,k] - data['sheep'][itime][j,k])/dist_ij[i,j],(NP,2),dtype=int),axis=0)
@@ -273,7 +291,8 @@ def doAccelerationStep(data):
 	if sheepSheepInteration == 'On':
 		data['sheepAcc'][itime] = data['sheepAcc'][itime]  + data['forceWalls'][itime] + data['forceSheep'][itime]
 	else:
-		data['sheepAcc'][itime] = data['sheepAcc'][itime] + data['forceWalls'][itime]
+		data['sheepAcc'][itime][data['alive'][itime]] = data['sheepAcc'][itime][data['alive'][itime]] + data['forceWalls'][itime][data['alive'][itime]]
+
 
 	if timeStepMethod == 'Euler':
 		#Euler time step
@@ -361,31 +380,32 @@ def initPlot(data, savePlotPng):
 
 def plotDataPositions(data, tstep, dQuiv, sQuiv, savePlotPng):
 	dogTheta = np.arctan2(data['dogVel'][tstep-1,1], data['dogVel'][tstep-1,0])
-	sheepTheta = np.arctan2(data['sheepVel'][tstep-1,:,1], data['sheepVel'][tstep-1,:,0])
+	sheepTheta = np.arctan2(data['sheepVel'][tstep-1,:,1][data['alive'][tstep-1]], data['sheepVel'][tstep-1,:,0][data['alive'][tstep-1]])
 
 	colorQuiver = np.zeros(NP)
 	if showSheepDogCanSee == 'On':
 		colorQuiver[data['dog_index_neighbours']] = 1.
 		if showDogInfluence == 'On' or segmentColours == 'On':
-			sys.exit('You cannot show both multiple colourings')
+			sys.exit('You cannot show multiple colourings')
 	elif showDogInfluence == 'On':
 		colorQuiver[(sheepTheta > dogTheta - np.pi/16 ) * (sheepTheta < dogTheta + np.pi/16)] = 1
 		if showSheepDogCanSee == 'On' or segmentColours == 'On':
-			sys.exit('You cannot show both multiple colourings')
+			sys.exit('You cannot show multiple colourings')
 	elif segmentColours == 'On':
 		colorQuiver = data['interactingSheep'][tstep-1]
 		if showDogInfluence == 'On' or showSheepDogCanSee == 'On':
-			sys.exit('You cannot show both multiple colourings')
+			sys.exit('You cannot show multiple colourings')
+
 	dQuiv.set_offsets(np.transpose([data['dog'][tstep, 0], data['dog'][tstep, 1]]))
 	dQuiv.set_UVC(np.cos(dogTheta),np.sin(dogTheta))
-	sQuiv.set_offsets(np.transpose([data['sheep'][tstep,:, 0], data['sheep'][tstep,:, 1]]))
+
+	sQuiv.set_offsets(np.transpose([data['sheep'][tstep,:, 0][data['alive'][tstep]], data['sheep'][tstep,:, 1][data['alive'][tstep]]]))
 	sQuiv.set_UVC(np.cos(sheepTheta), np.sin(sheepTheta), colorQuiver)
 
 	if savePlotPng == 'On':
 		plt.savefig('frames/'+str(int(np.floor(data['t'][tstep]/plotPeriod))).zfill(7)+'.png')
 	else:
 		plt.pause(0.005)
-
 
 def saveData(data):
 	h5f = h5py.File('data-%07d.h5'%int(data['t'][itime]), 'w')

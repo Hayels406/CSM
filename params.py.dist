@@ -16,6 +16,7 @@ visualDist = 20.
 tau = 1.
 accCap = 1.
 noSegments = 6
+predation_length_scale = 0.05
 
 timeStepMethod = 'Adaptive'         #Euler or Adaptive
 updateMethod = 'Acceleration'       #Acceleration or Velocity
@@ -28,6 +29,7 @@ normDog = 'Off'                 #Normalise the dogs acceleration
 cap = 'Off'                     #Cap the acceleration of the sheep
 segments = 'Off'                #Dog only interacts with sheep in the segment in front of it
 emergencyCheck = 'Off'
+predation = 'On'
 
 wallType = 'Square'
 wallLeft = -1.25

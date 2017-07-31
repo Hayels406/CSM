@@ -11,12 +11,13 @@ sheepMass = 0.5
 dogMass = 1.
 
 r = 10.
-groupSize = 2
+groupSize = 400
 n = 50
 visualDist = 20.
 tau = 1.
 accCap = 1.
 noSegments = 6
+predation_length_scale = 0.05
 
 timeStepMethod = 'Adaptive'         #Euler or Adaptive
 updateMethod = 'Acceleration'       #Acceleration or Velocity
@@ -29,6 +30,7 @@ normDog = 'Off'                 #Normalise the dogs acceleration
 cap = 'Off'                     #Cap the acceleration of the sheep
 segments = 'Off'                #Dog only interacts with sheep in the segment in front of it
 emergencyCheck = 'Off'
+predation = 'On'
 
 wallType = 'Square'           #Square or Circular
 wallLeft = -1.25
@@ -39,7 +41,7 @@ wallTop = 1.25
 snapshotPeriod = 100.0 #units of time
 plotPeriod = 0.05 #units of time
 plot = 'On' #On or Off
-savePlotPng = 'Off' #On or Off
+savePlotPng = 'On' #On or Off
 saveDataH5 = 'Off'
 
 dog_init = [-0., -0.]		    #np.random.rand(2)*3.0+1.
