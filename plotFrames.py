@@ -11,6 +11,7 @@ sys.dont_write_bytecode = True
 sys.path.insert(0,os.getcwd())
 from defaultParams import *
 from params import *
+from fixedParams import *
 
 
 from CSM import init
