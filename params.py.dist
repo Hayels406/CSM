@@ -7,7 +7,7 @@ c = 10.
 f = 1.
 
 sheepMass = 0.5
-dogMass = 1.
+dogMass = 1.5
 
 r = 10.
 groupSize = 400
@@ -29,7 +29,7 @@ normDog = 'Off'                 #Normalise the dogs acceleration
 cap = 'Off'                     #Cap the acceleration of the sheep
 segments = 'Off'                #Dog only interacts with sheep in the segment in front of it
 emergencyCheck = 'Off'
-predation = 'On'
+predation = 'Off'
 
 wallType = 'Square'
 wallLeft = -1.25
@@ -38,7 +38,7 @@ wallBottom = -1.25
 wallTop = 1.25
 
 snapshotPeriod = 100.0 #units of time
-plotPeriod = 0.5 #units of time
+plotPeriod = 1. #units of time
 plot = 'Off' #On or Off
 savePlotPng = 'On' #On or Off
 saveDataH5 = 'On'
