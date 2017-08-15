@@ -248,12 +248,12 @@ def doAccelerationStep(data):
 			data['forceWalls'][itime][data['alive'][itime]] += (A*np.exp((np.dot(-data['walls']['n'][wall], data['sheep'][itime].T)-np.abs(w[2])+C)/B).reshape(NP,1)*data['walls']['n'][wall])[data['alive'][itime]]
 
 	elif wallType == 'Circular':
-		distance = np.linalg.norm(data['sheep'][itime], axis = 1)
-		unit = data['sheep'][itime]/distance.reshape(NP,1)
+		distance = np.linalg.norm(data['sheep'][itime][data['alive'][itime]], axis = 1)
+		unit = data['sheep'][itime][data['alive'][itime]]/distance.reshape(sum(data['alive'][itime]),1)
 
-		data['dist_iw'][itime,:] = np.squeeze(data['walls'][0] - distance)
+		data['dist_iw'][itime,:][data['alive'][itime]] = np.squeeze(data['walls'][0] - distance)
 
-		data['forceWalls'][itime] = -A*unit*np.exp((distance-data['walls'][0]+C)/B ).reshape(NP,1)
+		data['forceWalls'][itime][data['alive'][itime]] = -A*unit*np.exp((distance-data['walls'][0]+C)/B ).reshape(sum(data['alive'][itime]),1)
 
 	if sheepSheepInteration == 'On':
 		for i in range(NP):
@@ -282,7 +282,7 @@ def doAccelerationStep(data):
 	preyMinusPred = sheep - data['dog'][itime]
 
 	normStuff3 = np.linalg.norm(preyMinusPred,axis=1).reshape(numberInteractingSheep,1)
-	data['Hfunc'][itime][0:numberInteractingSheep] = 1./(normStuff3**1. + 0.1)
+	data['Hfunc'][itime][0:numberInteractingSheep] = 1./(normStuff3**3. + 0.1)
 	data['Hfunc'][itime][numberInteractingSheep:] = np.nan
 	data['dogAcc'][itime] = (-data['dogVel'][itime] + c/numberInteractingSheep*(preyMinusPred*(normStuff3**(-1))*data['Hfunc'][itime][:numberInteractingSheep]).sum(axis=0))/dogMass
 
@@ -299,12 +299,14 @@ def doAccelerationStep(data):
 			data['forceWallsDog'][itime] += (A*np.exp((np.dot(-data['walls']['n'][wall], data['dog'][itime].T)-np.abs(w[2])+C)/B)*data['walls']['n'][wall])
 
 	elif wallType == 'Circular':
-		distance = np.linalg.norm(data['dog'][itime], axis = 1)
-		unit = data['dog'][itime]/distance.reshape(1,1)
+		distance = np.linalg.norm(data['dog'][itime])
+		if distance == 0.0:
+			distance = 0.01
+		unit = data['dog'][itime]/distance
 
 		data['dist_dw'][itime] = np.squeeze(data['walls'][0] - distance)
 
-		data['forceWallsDog'][itime] = -A*unit*np.exp((distance-data['walls'][0]+C)/B ).reshape(1,1)
+		data['forceWallsDog'][itime] = -A*unit*np.exp((distance-data['walls'][0]+C)/B )
 
 
 	data['dogAcc'][itime] = data['dogAcc'][itime] + data['forceWallsDog'][itime]
@@ -419,7 +421,7 @@ def initPlot(data, savePlotPng):
 
 def plotDataPositions(data, tstep, dQuiv, sQuiv, savePlotPng):
 	dogTheta = np.arctan2(data['dogVel'][tstep-1,1], data['dogVel'][tstep-1,0])
-	sheepTheta = np.arctan2(data['sheepVel'][tstep-1,:,1][data['alive'][tstep-1]], data['sheepVel'][tstep-1,:,0][data['alive'][tstep-1]])
+	sheepTheta = np.arctan2(data['sheepVel'][tstep-1,:,1][data['alive'][tstep]], data['sheepVel'][tstep-1,:,0][data['alive'][tstep]])
 
 	colorQuiver = np.zeros(NP)
 	if showSheepDogCanSee == 'On':
@@ -547,7 +549,7 @@ if __name__ == "__main__":
 	lastSnapshot = data['t'][itime]
 	lastPlot = data['t'][itime]
 
-	while data['t'][itime] < TF:
+	while (data['t'][itime] < TF)*(data['alive'][itime].sum() > 2):
 		if data['t'][itime]-lastPlot > plotPeriod:
 			print data['t'][itime]
 			if plot == 'On':
