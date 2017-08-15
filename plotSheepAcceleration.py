@@ -3,6 +3,7 @@ import math
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
+from matplotlib import rc
 import sys
 import h5py
 import os
@@ -40,8 +41,13 @@ for dataName in files:
 plt.plot(t[t<=2000][10:], acc[t<=2000][10:, :], alpha = 0.2)
 plt.plot(t[t<=2000][10:], av[t<=2000][10:,])
 plt.plot(t[t<=2000][10:], np.array(maxAcc)[t<=2000][10:], color = 'r', ls = '--')
+rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+rc('text', usetex=True)
 plt.yscale('log')
 plt.ylabel('log(Acceleration)')
 plt.xlabel('Time')
+ax = plt.subplot(111)
+for label in ax.get_xticklabels() + ax.get_yticklabels():
+    label.set_fontsize(16)
 plt.savefig('plots/sheepAcceleration.png')
 plt.close()

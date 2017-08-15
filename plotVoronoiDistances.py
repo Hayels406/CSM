@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+from matplotlib import rc
 import sys
 import h5py
 import os
@@ -32,16 +33,13 @@ for pair in vertexIndex:
 
 dist_v = np.array(dist_v)[np.array(dist_v) < .5]
 
+rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+rc('text', usetex=True)
 n, bins, patches = plt.hist(dist_v, bins = 100)
-plt.xlabel('Distance between Voronoi vertices')
-plt.ylabel('Frequency')
-#mu = np.mean(dist_v)
-#sd = np.std(dist_v)
-#beta = mu/sd**2
-#alpha = mu**2/sd**2
-#fit_alpha, fit_loc, fit_beta=gamma.fit(dist_v)
-#line_best_fit = gamma.pdf(bins, scale = 1./beta, a = alpha)
-#plt.plot(bins, line_best_fit)
+plt.xlabel('Distance between Voronoi vertices', fontsize = 18)
+plt.ylabel('Frequency', fontsize = 18)
+ax = plt.subplot(111)
+for label in ax.get_xticklabels() + ax.get_yticklabels():
+    label.set_fontsize(16)
 plt.ylim(ymax = 100)
-plt.title('mean = ' + str(np.mean(dist_v)) + '   Upper Quartile = ' + str(np.percentile(dist_v, 75)))
 plt.savefig('plots/voronoiDistance.png')
