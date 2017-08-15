@@ -18,5 +18,11 @@ python ~/Documents/Uni/Documents/CSM/plotSheepVelocity.py
 python ~/Documents/Uni/Documents/CSM/plotDogAcceleration.py
 python ~/Documents/Uni/Documents/CSM/plotDogVelocity.py
 python ~/Documents/Uni/Documents/CSM/plotTimeStep.py
-python ~/Documents/Uni/Documents/CSM/convexHull.py
+python ~/Documents/Uni/Documents/CSM/plotConvexHull.py
 python ~/Documents/Uni/Documents/CSM/plotVoronoiDistances.py
+
+
+MAC=/Users/hayleymoore/Documents/Uni/Documents/CSM
+if [ -f $MAC/params.py.dist ]; then
+  terminal-notifier -title "CSM" -message "Done with simulation" -subtitle ${vid} -sound 'glass'
+fi
