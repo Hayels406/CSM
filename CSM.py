@@ -172,7 +172,7 @@ def doAccelerationStep(data):
 		if np.min(data['dist_id'][itime][data['alive'][itime]]) < predation_length_scale:
 			prey_too_close = np.where(data['dist_id'][itime] == np.min(data['dist_id'][itime][data['alive'][itime]]))[0][0]
 
-			print 'predation', prey_too_close
+			print 'predation of prey ', prey_too_close, ': ', sum(data['alive'][itime])
 
 			data['alive'][itime:,prey_too_close] = False
 
@@ -194,17 +194,17 @@ def doAccelerationStep(data):
 
 	elif flocking == 'Vicsek':
 		tree = KDTree(data['sheep'][itime][data['alive'][itime]])
-		idx = tree.query_radius(data['sheep'][itime][data['alive'][itime]], r)
-		for i in xrange(0,sum([data['alive'][itime]])):
+		idx = tree.query_radius(data['sheep'][itime], r)
+		for i in np.array(range(NP))[data['alive'][itime]]:
 			dumidx = idx[i][idx[i] != i] # remove identity particle
 			if len(dumidx) >= 1: # Some neighbours
 				sheepAccTemp = (data['sheepVel'][itime][data['alive'][itime]][dumidx].mean(axis = 0) - data['sheepVel'][itime][i])
 				if itime < 4.:
-					data['sheepAccFlocking'][itime][data['alive'][itime]][i] = sheepAccTemp/dt
+					data['sheepAccFlocking'][itime][i] = sheepAccTemp/dt
 				else:
-					data['sheepAccFlocking'][itime][data['alive'][itime]][i] = sheepAccTemp/data['q'][-1]*dt
+					data['sheepAccFlocking'][itime][i] = sheepAccTemp/data['q'][-1]*dt
 			else:  # No neighbours
-				data['sheepAccFlocking'][itime][data['alive'][itime]][i] = np.zeros(2)
+				data['sheepAccFlocking'][itime][i] = np.zeros(2)
 	elif flocking == 'Topo':
 		tree = KDTree(data['sheep'][itime])
 		idx = tree.query(data['sheep'][itime], n+1)[1][:,1:]
