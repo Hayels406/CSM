@@ -172,7 +172,7 @@ def doAccelerationStep(data):
 		if np.min(data['dist_id'][itime][data['alive'][itime]]) < predation_length_scale:
 			prey_too_close = np.where(data['dist_id'][itime] == np.min(data['dist_id'][itime][data['alive'][itime]]))[0][0]
 
-			print 'predation of prey ', prey_too_close, ': ', sum(data['alive'][itime])
+			print 'predation of prey', prey_too_close, ': ', sum(data['alive'][itime])
 
 			data['alive'][itime:,prey_too_close] = False
 
@@ -206,8 +206,8 @@ def doAccelerationStep(data):
 			else:  # No neighbours
 				data['sheepAccFlocking'][itime][i] = np.zeros(2)
 	elif flocking == 'Topo':
-		tree = KDTree(data['sheep'][itime])
-		idx = tree.query(data['sheep'][itime], n+1)[1][:,1:]
+		tree = KDTree(data['sheep'][itime][data['alive'][itime]])
+		idx = tree.query(data['sheep'][itime][data['alive'][itime]], np.min([n+1, sum(data['alive'][itime])]))[1][:,1:]
 		sheepAccTemp = (data['sheepVel'][itime][idx].mean(axis = 1) - data['sheepVel'][itime])
 		if itime < 4.:
 			data['sheepAccFlocking'][itime] = sheepAccTemp/dt
