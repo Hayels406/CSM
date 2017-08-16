@@ -193,18 +193,18 @@ def doAccelerationStep(data):
 			data['sheepAccFlocking'][itime][data['alive'][itime]] = (f/groupSize)*np.array(map(lambda j:((normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(sum(data['alive'][itime])))).sum(axis = 1)
 
 	elif flocking == 'Vicsek':
-		tree = KDTree(data['sheep'][itime])
-		idx = tree.query_radius(data['sheep'][itime], r)
-		for i in xrange(0,NP):
+		tree = KDTree(data['sheep'][itime][data['alive'][itime]])
+		idx = tree.query_radius(data['sheep'][itime][data['alive'][itime]], r)
+		for i in xrange(0,sum([data['alive'][itime]])):
 			dumidx = idx[i][idx[i] != i] # remove identity particle
 			if len(dumidx) >= 1: # Some neighbours
-				sheepAccTemp = (data['sheepVel'][itime][dumidx].mean(axis = 0) - data['sheepVel'][itime][i])
+				sheepAccTemp = (data['sheepVel'][itime][data['alive'][itime]][dumidx].mean(axis = 0) - data['sheepVel'][itime][i])
 				if itime < 4.:
-					data['sheepAccFlocking'][itime][i] = sheepAccTemp/dt
+					data['sheepAccFlocking'][itime][data['alive'][itime]][i] = sheepAccTemp/dt
 				else:
-					data['sheepAccFlocking'][itime][i] = sheepAccTemp/data['q'][-1]*dt
+					data['sheepAccFlocking'][itime][data['alive'][itime]][i] = sheepAccTemp/data['q'][-1]*dt
 			else:  # No neighbours
-				data['sheepAccFlocking'][itime][i] = np.zeros(2)
+				data['sheepAccFlocking'][itime][data['alive'][itime]][i] = np.zeros(2)
 	elif flocking == 'Topo':
 		tree = KDTree(data['sheep'][itime])
 		idx = tree.query(data['sheep'][itime], n+1)[1][:,1:]
