@@ -227,9 +227,9 @@ def doAccelerationStep(data):
 	if allSheepSeeDog == 'On':
 		data['sheepAccFlight'][itime][data['alive'][itime]] = data['Gfunc'][itime][data['alive'][itime]]*preyMinusPred*(normStuff2**(-1))
 	elif allSheepSeeDog == 'Off':
-		vor = Voronoi(np.concatenate((data['sheep'][itime], data['dog'][itime][None,:]), axis = 0))
+		vor = Voronoi(np.concatenate((data['sheep'][itime][data['alive'][itime]], data['dog'][itime][None,:]), axis = 0))
 		data['dog_index_neighbours'] = np.array([t[1] for t in [(b1, a1) for a1, b1 in vor.ridge_dict.keys()] + vor.ridge_dict.keys() if t[0] == NP]) #Calculates the Voronoi neighbours of dog
-		data['sheepAccFlight'][itime][data['dog_index_neighbours']] = (data['Gfunc'][itime]*preyMinusPred*(normStuff2**(-1)))[data['dog_index_neighbours']]
+		data['sheepAccFlight'][itime][data['alive'][itime]][data['dog_index_neighbours']] = (data['Gfunc'][itime]*preyMinusPred*(normStuff2**(-1)))[data['dog_index_neighbours']]
 	else:
 		sys.exit('Invalid allSheepSeeDog:'+allSheepSeeDog+' in doAccelerationStep()')
 
@@ -267,11 +267,11 @@ def doAccelerationStep(data):
 #################################################################
 	#Acceleration of dog
 	if segments == 'On':
-		angles = [np.arctan2(i[1], i[0]) for i in np.tile(data['dog'][itime], (NP, 1)) - data['sheep'][itime]]
+		angles = [np.arctan2(i[1], i[0]) for i in np.tile(data['dog'][itime], (NP, 1)) - data['sheep'][itime][data['alive'][itime]]]
 		freq,locs = np.histogram(angles, bins = noSegments, density = False, normed = False)
 		maxLoc = np.argmax(freq)
 		rangeLoc = locs[maxLoc: maxLoc+2]
-		sheep = data['sheep'][itime][(np.array(angles) > rangeLoc[0]) &  (np.array(angles) < rangeLoc[1])]
+		sheep = data['sheep'][itime][data['alive'][itime]][(np.array(angles) > rangeLoc[0]) &  (np.array(angles) < rangeLoc[1])]
 		numberInteractingSheep = np.shape(sheep)[0]
 		data['interactingSheep'][itime] = ((np.array(angles) > rangeLoc[0]) &  (np.array(angles) < rangeLoc[1])).tolist()
 
@@ -282,7 +282,7 @@ def doAccelerationStep(data):
 	preyMinusPred = sheep - data['dog'][itime]
 
 	normStuff3 = np.linalg.norm(preyMinusPred,axis=1).reshape(numberInteractingSheep,1)
-	data['Hfunc'][itime][0:numberInteractingSheep] = 1./(normStuff3**3. + 0.1)
+	data['Hfunc'][itime][0:numberInteractingSheep] = 1./(normStuff3**p + 0.1)
 	data['Hfunc'][itime][numberInteractingSheep:] = np.nan
 	data['dogAcc'][itime] = (-data['dogVel'][itime] + c/numberInteractingSheep*(preyMinusPred*(normStuff3**(-1))*data['Hfunc'][itime][:numberInteractingSheep]).sum(axis=0))/dogMass
 
