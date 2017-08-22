@@ -18,6 +18,8 @@ elif pwd.rfind('Length') > 0:
     lab = 'Length = '
 elif pwd.rfind('Agressiveness') > 0:
     lab = '$p = $'
+elif pwd.rfind('noise') > 0:
+    lab = '$\eta = $'
 else:
     lab = ''
 
@@ -28,6 +30,8 @@ for dFile in dataFile:
         value = dFile[dFile.rfind('th')+2:dFile.rfind('/')].replace('-', '.')
     elif pwd.rfind('Agressiveness') > 0:
         value = dFile[dFile.rfind('p')+1:dFile.rfind('/')].replace('-', '.')
+    elif pwd.rfind('noise') > 0:
+        value = dFile[dFile.rfind('eta')+3:dFile.rfind('/')].replace('-', '.')
     else:
         value = dFile[:dFile.rfind('/')]
 
