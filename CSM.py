@@ -176,6 +176,18 @@ def doAccelerationStep(data):
 
 			data['alive'][itime:,prey_too_close] = False
 
+	if (noise == 'On')*(itime > 4):
+		dogTheta = np.arctan2(data['dogVel'][itime,1], data['dogVel'][itime,0])
+		sheepTheta = np.arctan2(data['sheepVel'][itime,:,1][data['alive'][itime]], data['sheepVel'][itime,:,0][data['alive'][itime]])
+
+		dogVel = np.sqrt((data['dogVel'][itime]**2).sum())
+		sheepVel = np.sqrt((data['sheepVel'][itime][data['alive'][itime]]**2).sum(axis = 1))
+
+		dogTheta = dogTheta + np.random.rand(1)[0]*np.pi*eta - np.pi*eta/2.
+		sheepTheta = sheepTheta + np.random.rand(sum(data['alive'][itime]))*np.pi*eta - np.pi*eta/2.
+
+		data['dogVel'][itime] = dogVel*np.array([np.cos(dogTheta), np.sin(dogTheta)])
+		data['sheepVel'][itime][data['alive'][itime]] = sheepVel.reshape(sum(data['alive'][itime]), 1)*np.transpose(np.array([np.cos(sheepTheta), np.sin(sheepTheta)]))
 
 	#Acceleration of sheep
 	#Flocking
@@ -317,8 +329,7 @@ def doAccelerationStep(data):
 	data['dist_ij']['mean'][itime] = np.mean(dist_ij)
 
 
-
-
+##############################################################################
 	if timeStepMethod == 'Euler':
 		#Euler time step
 		data['dogVel'][itime + 1] = data['dogVel'][itime] + data['dogAcc'][itime]*dt
@@ -389,14 +400,16 @@ def doAccelerationStep(data):
 
 
 def initPlot(data, savePlotPng):
-	dogTheta = np.arctan2(data['dogVel'][-1,1], data['dogVel'][-1,0])
+	if predOff == False:
+		dogTheta = np.arctan2(data['dogVel'][-1,1], data['dogVel'][-1,0])
 	sheepTheta = np.arctan2(data['sheepVel'][-1,:,1], data['sheepVel'][-1,:,0])
 
 	from matplotlib import colors
 	cmap = colors.ListedColormap(['black', 'blue'])
 	bounds=[0,0.5,1.0]
 	norm = colors.BoundaryNorm(bounds, cmap.N)
-	dogQuiver = plt.quiver(data['dog'][0, 0], data['dog'][0, 1], np.cos(dogTheta), np.sin(dogTheta), scale = 30, color = 'red')
+	if predOff == False:
+		dogQuiver = plt.quiver(data['dog'][0, 0], data['dog'][0, 1], np.cos(dogTheta), np.sin(dogTheta), scale = 30, color = 'red')
 	sheepQuiver = plt.quiver(data['sheep'][0,:,0], data['sheep'][0,:,1], np.cos(sheepTheta), np.sin(sheepTheta), scale = 30, cmap = cmap, norm = norm)
 	plt.axis([wallLeft-0.25,wallRight+0.25,wallBottom-0.25,wallTop+0.25])
 	plt.axes().set_aspect('equal')
@@ -417,28 +430,34 @@ def initPlot(data, savePlotPng):
 	else:
 		plt.pause(0.005)
 
-	return dogQuiver, sheepQuiver
+	if predOff == False:
+		return dogQuiver, sheepQuiver
+	else:
+		return sheepQuiver
 
 def plotDataPositions(data, tstep, dQuiv, sQuiv, savePlotPng):
-	dogTheta = np.arctan2(data['dogVel'][tstep-1,1], data['dogVel'][tstep-1,0])
+	if predOff == False:
+		dogTheta = np.arctan2(data['dogVel'][tstep-1,1], data['dogVel'][tstep-1,0])
 	sheepTheta = np.arctan2(data['sheepVel'][tstep-1,:,1][data['alive'][tstep]], data['sheepVel'][tstep-1,:,0][data['alive'][tstep]])
 
-	colorQuiver = np.zeros(NP)
-	if showSheepDogCanSee == 'On':
-		colorQuiver[data['dog_index_neighbours']] = 1.
-		if showDogInfluence == 'On' or segmentColours == 'On':
-			sys.exit('You cannot show multiple colourings')
-	elif showDogInfluence == 'On':
-		colorQuiver[(sheepTheta > dogTheta - np.pi/16 ) * (sheepTheta < dogTheta + np.pi/16)] = 1
-		if showSheepDogCanSee == 'On' or segmentColours == 'On':
-			sys.exit('You cannot show multiple colourings')
-	elif segmentColours == 'On':
-		colorQuiver = data['interactingSheep'][tstep-1]
-		if showDogInfluence == 'On' or showSheepDogCanSee == 'On':
-			sys.exit('You cannot show multiple colourings')
 
-	dQuiv.set_offsets(np.transpose([data['dog'][tstep, 0], data['dog'][tstep, 1]]))
-	dQuiv.set_UVC(np.cos(dogTheta),np.sin(dogTheta))
+	colorQuiver = np.zeros(NP)
+	if predOff == False:
+		if showSheepDogCanSee == 'On':
+			colorQuiver[data['dog_index_neighbours']] = 1.
+			if showDogInfluence == 'On' or segmentColours == 'On':
+				sys.exit('You cannot show multiple colourings')
+		elif showDogInfluence == 'On':
+			colorQuiver[(sheepTheta > dogTheta - np.pi/16 ) * (sheepTheta < dogTheta + np.pi/16)] = 1
+			if showSheepDogCanSee == 'On' or segmentColours == 'On':
+				sys.exit('You cannot show multiple colourings')
+		elif segmentColours == 'On':
+			colorQuiver = data['interactingSheep'][tstep-1]
+			if showDogInfluence == 'On' or showSheepDogCanSee == 'On':
+				sys.exit('You cannot show multiple colourings')
+
+		dQuiv.set_offsets(np.transpose([data['dog'][tstep, 0], data['dog'][tstep, 1]]))
+		dQuiv.set_UVC(np.cos(dogTheta),np.sin(dogTheta))
 
 	sQuiv.set_offsets(np.transpose([data['sheep'][tstep,:, 0][data['alive'][tstep]], data['sheep'][tstep,:, 1][data['alive'][tstep]]]))
 	sQuiv.set_UVC(np.cos(sheepTheta), np.sin(sheepTheta), colorQuiver)
@@ -542,10 +561,15 @@ if __name__ == "__main__":
 	data = init()
 	itime = 0
 	initCond(data)
+	if predOff == True:
+		b = 0
 	if loadFromFile == 'On':
 		itime = loadData(data,fileName)
 	if plot == 'On':
-		dogQuiver, sheepQuiver = initPlot(data, savePlotPng)
+		if predOff == False:
+			dogQuiver, sheepQuiver = initPlot(data, savePlotPng)
+		else:
+			sheepQuiver = initPlot(data, savePlotPng)
 	lastSnapshot = data['t'][itime]
 	lastPlot = data['t'][itime]
 
@@ -553,7 +577,10 @@ if __name__ == "__main__":
 		if data['t'][itime]-lastPlot > plotPeriod:
 			print data['t'][itime]
 			if plot == 'On':
-				plotDataPositions(data, itime, dogQuiver, sheepQuiver, savePlotPng)
+				if predOff == False:
+					plotDataPositions(data, itime, dogQuiver, sheepQuiver, savePlotPng)
+				else:
+					plotDataPositions(data, itime, 'Off', sheepQuiver, savePlotPng)
 			lastPlot = data['t'][itime]
 
 		if saveDataH5 == 'On':
