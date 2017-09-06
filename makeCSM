@@ -3,6 +3,8 @@ INSTALLDIR=/home/b1033128/Documents/CSM
 INSTALLDIR_TOPSY=/home/b1033128/CSM
 INSTALLDIR_HOME=/Users/hayleymoore/Documents/Uni/Documents/CSM
 
+mkdir $1
+cd $1
 
 if [ -f $INSTALLDIR/params.py.dist ]; then
 	touch ./params.py
