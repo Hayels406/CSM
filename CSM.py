@@ -75,7 +75,6 @@ def init():
 		data['dogAcc'] = np.zeros((cachedTimesteps,2))
 		data['Gfunc'] = np.zeros((cachedTimesteps,NP,2))
 		data['Hfunc'] = np.zeros((cachedTimesteps,NP,2))
-		data['Ffunc'] = np.zeros((cachedTimesteps,NP,2))
 	else:
 		sys.exit("Error: updateMethod not recognized!")
 	if segments == 'On':
@@ -98,6 +97,10 @@ def initCond(data):
 		data['sheepVel'][0,:,1] = sheep_vel_init*np.sin(sheepTheta)
 		data['sheepVel'][-1,:,0] = sheep_vel_init*np.cos(sheepTheta)
 		data['sheepVel'][-1,:,1] = sheep_vel_init*np.sin(sheepTheta)
+	elif sheep_init == 'Anular':
+		posPrey = np.linspace(0, 2*np.pi, NP)
+		data['sheep'][0,:,0] = np.cos(posPrey)
+		data['sheep'][0,:,1] = np.sin(posPrey)
 
 
 ###############
@@ -200,9 +203,10 @@ def doAccelerationStep(data):
 		else:
 			normStuff = np.linalg.norm(distMatrix, axis = 2).reshape(sum(data['alive'][itime]), sum(data['alive'][itime]), 1) + sheepSize
 		if gaussian == 'On':
-			data['sheepAccFlocking'][itime][data['alive'][itime]] = (f/groupSize)*np.array(map(lambda j:((normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*np.exp(-normStuff[j,idx[j],:]**2/visualDist**2)*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(sum(data['alive'][itime])))).sum(axis = 1)
+			data['sheepAccFlocking'][itime][data['alive'][itime]] = (1./np.min([groupSize, sum(data['alive'][itime])]))*np.array(map(lambda j:((f*normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*np.exp(-normStuff[j,idx[j],:]**2/visualDist**2)*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(sum(data['alive'][itime])))).sum(axis = 1)
 		else:
-			data['sheepAccFlocking'][itime][data['alive'][itime]] = (f/groupSize)*np.array(map(lambda j:((normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(sum(data['alive'][itime])))).sum(axis = 1)
+			#data['sheepAccFlocking'][itime][data['alive'][itime]] = (0.01)*np.array(map(lambda j:((f*normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(sum(data['alive'][itime])))).sum(axis = 1)
+			data['sheepAccFlocking'][itime][data['alive'][itime]] = (1./np.min([groupSize, sum(data['alive'][itime])]))*np.array(map(lambda j:((f*normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(sum(data['alive'][itime])))).sum(axis = 1)
 
 	elif flocking == 'Vicsek':
 		tree = KDTree(data['sheep'][itime][data['alive'][itime]])
@@ -287,6 +291,11 @@ def doAccelerationStep(data):
 		numberInteractingSheep = np.shape(sheep)[0]
 		data['interactingSheep'][itime] = ((np.array(angles) > rangeLoc[0]) &  (np.array(angles) < rangeLoc[1])).tolist()
 
+	elif dogNeareastNeigh == 'On':
+		tree = KDTree(data['sheep'][itime][data['alive'][itime]])
+		idx = tree.query(data['dog'][itime].reshape(1, -1), np.min([k, sum(data['alive'][itime])]))[1][0]
+		sheep = data['sheep'][itime][data['alive'][itime]][idx]
+		numberInteractingSheep = k
 	else:
 		sheep = data['sheep'][itime][data['alive'][itime]]
 		numberInteractingSheep = sum(data['alive'][itime])
@@ -396,6 +405,8 @@ def doAccelerationStep(data):
 			data['q'].append(np.floor(100.*min_q)/100.)
 	else:
 		sys.exit('Invalid time step method:'+timeStepMethod+' in doAccelerationStep()')
+	if dogCentrePrey == 'On':
+		data['dog'][itime+1] = data['sheep'][itime+1][data['alive'][itime]].mean(axis = 0)
 
 
 
@@ -526,7 +537,6 @@ def loadData(data,fn):
 		data['dogAcc'][0:itime+1] = np.copy(h5f['dogAcc'])
 		data['Gfunc'][0:itime+1] = np.copy(h5f['Gfunc'])
 		data['Hfunc'][0:itime+1] = np.copy(h5f['Hfunc'])
-		data['Ffunc'][0:itime+1] = np.copy(h5f['Ffunc'])
 	else:
 		sys.exit("Error: updateMethod not recognized!")
 
