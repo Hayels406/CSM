@@ -1,16 +1,16 @@
 TF = 100.
-NP = 400
+NP = 500
 a = 1.
 b = 0.1
 p = 3.0
-c = 10.
+c = 2.
 f = 1.
 
 sheepMass = 0.5
 dogMass = 1.5
 
 r = 10.
-groupSize = 400
+groupSize = 500
 n = 50
 visualDist = 20.
 tau = 1.
@@ -18,6 +18,7 @@ accCap = 1.
 noSegments = 6
 predation_length_scale = 0.05
 eta = 0.
+k = 10
 
 timeStepMethod = 'Adaptive'         #Euler or Adaptive
 updateMethod = 'Acceleration'       #Acceleration or Velocity
@@ -33,6 +34,8 @@ emergencyCheck = 'Off'
 predation = 'Off'
 predOff = False
 noise = 'Off'
+dogNeareastNeigh = 'Off'
+dogCentrePrey = 'On'
 
 wallType = 'Square'
 wallLeft = -1.25
@@ -40,15 +43,15 @@ wallRight = 1.25
 wallBottom = -1.25
 wallTop = 1.25
 
-snapshotPeriod = 100.0 #units of time
+snapshotPeriod = TF #units of time
 plotPeriod = 0.1 #units of time
 plot = 'Off' #On or Off
 savePlotPng = 'On' #On or Off
 saveDataH5 = 'On'
 
-dog_init = [-0., -0.]		    #np.random.rand(2)*3.0+1.
-sheep_init = 'Random'		#Random or Grid
-dog_vel_init = [0.1, 0.1]
+dog_init = [0., 0.]		    #np.random.rand(2)*3.0+1.
+sheep_init = 'Random'		#Random or Grid or Anular
+dog_vel_init = [0.0, 0.0]
 sheep_vel_init = 0.
 sheep_area = 1.
 
