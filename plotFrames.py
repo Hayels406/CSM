@@ -10,8 +10,8 @@ from glob import glob
 sys.dont_write_bytecode = True
 sys.path.insert(0,os.getcwd())
 from defaultParams import *
-from params import *
 from fixedParams import *
+from params import *
 
 
 from CSM import init
@@ -46,10 +46,16 @@ for dataName in files:
     tstep = 0
     lastPlot = data['t'][tstep]
     if dataName == files[0]:
-        dogQuiver, sheepQuiver = initPlot(data, savePlotPng)
+        if predOff == False:
+            dogQuiver, sheepQuiver = initPlot(data, savePlotPng)
+        else:
+            sheepQuiver = initPlot(data, savePlotPng)
     for t in data['t']:
         if t-lastPlot > plotPeriod:
-    		print t
-    		plotDataPositions(data, tstep, dogQuiver, sheepQuiver, savePlotPng)
+            print 'read', t
+            if predOff == False:
+                plotDataPositions(data, tstep, dogQuiver, sheepQuiver, savePlotPng)
+            else:
+                plotDataPositions(data, tstep, 'off', sheepQuiver, savePlotPng)
     		lastPlot = data['t'][tstep]
         tstep += 1

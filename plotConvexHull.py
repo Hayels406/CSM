@@ -16,7 +16,7 @@ points = data['sheep'][itime]
 
 hull = ConvexHull(points)
 
-file = open('./volume','w')
+file = open('./output/volume','w')
 file.write(str(hull.volume))
 file.close()
 
