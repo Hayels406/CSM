@@ -24,7 +24,7 @@ for dFile in dataFiles:
     m2 = m2 + [np.sort(np.sqrt((data['sheep'][itime]**2).sum(axis = 1)))[-50:].mean()]
     m1 = m1 + [np.sort(np.sqrt((data['sheep'][itime]**2).sum(axis = 1)))[10:].mean()]
 
-    #file = open(dFile[:dFile.rfind('/')]+'/output/volume', 'r')
+file = open(dFile[:dFile.rfind('/')]+'/output/volume', 'r')
     #volume = float(file.read())
     #m2 = m2 + [np.sqrt(volume/np.pi)]
 
