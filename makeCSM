@@ -3,7 +3,7 @@ INSTALLDIR=/home/b1033128/Documents/CSM
 INSTALLDIR_TOPSY=/home/b1033128/CSM
 INSTALLDIR_HOME=/Users/hayleymoore/Documents/Uni/Documents/CSM
 
-mkdir $1
+mkdir -p $1
 cd $1
 
 if [ -f $INSTALLDIR/params.py.dist ]; then
@@ -24,6 +24,5 @@ if [ -f $INSTALLDIR_TOPSY/params.py.dist ]; then
 	touch ./params.py
   ln -s $INSTALLDIR_TOPSY/params.py.dist ./defaultParams.py
 	ln -s $INSTALLDIR_TOPSY/fixedParams.py.dist ./fixedParams.py
-  ln -s $INSTALLDIR_TOPSY/job.qsub ./job.qsub
 	ln -s $INSTALLDIR_TOPSY/CSM.py ./CSM.py
 fi
