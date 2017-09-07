@@ -1,4 +1,8 @@
 #!/bin/sh
+INSTALLDIR=/home/b1033128/Documents/CSM
+INSTALLDIR_TOPSY=/home/b1033128/CSM
+INSTALLDIR_HOME=/Users/hayleymoore/Documents/Uni/Documents/CSM
+
 rm -f *.h5
 rm -f *.pyc
 
@@ -18,14 +22,26 @@ fi
 
 mkdir -p plots
 mkdir -p output
-python ~/Documents/Uni/Documents/CSM/plotSheepAcceleration.py
-python ~/Documents/Uni/Documents/CSM/plotSheepVelocity.py
-python ~/Documents/Uni/Documents/CSM/plotDogAcceleration.py
-python ~/Documents/Uni/Documents/CSM/plotDogVelocity.py
-python ~/Documents/Uni/Documents/CSM/plotTimeStep.py
-python ~/Documents/Uni/Documents/CSM/plotConvexHull.py
-python ~/Documents/Uni/Documents/CSM/plotVoronoiDistances.py
-python ~/Documents/Uni/Documents/CSM/findClusters.py
+
+if [ -f $INSTALLDIR/params.py.dist ]; then
+	DIR=$INSTALLDIR
+fi
+if [ -f $INSTALLDIR_TOPSY/params.py.dist ]; then
+	DIR=$INSTALLDIR_TOPSY
+fi
+if [ -f $INSTALLDIR_HOME/params.py.dist ]; then
+	DIR=$INSTALLDIR_HOME
+fi
+
+
+python $DIR/plotSheepAcceleration.py
+python $DIR/plotSheepVelocity.py
+python $DIR/plotDogAcceleration.py
+python $DIR/plotDogVelocity.py
+python $DIR/plotTimeStep.py
+python $DIR/plotConvexHull.py
+python $DIR/plotVoronoiDistances.py
+python $DIR/findClusters.py
 
 if [ -f $MAC/params.py.dist ]; then
   terminal-notifier -title "CSM" -message "Done with simulation" -subtitle ${vid} -sound 'glass'
