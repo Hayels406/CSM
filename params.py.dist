@@ -35,7 +35,7 @@ predation = 'Off'
 predOff = False
 noise = 'Off'
 dogNeareastNeigh = 'Off'
-dogCentrePrey = 'On'
+dogCentrePrey = 'Off'
 
 wallType = 'Square'
 wallLeft = -1.25
@@ -50,8 +50,8 @@ savePlotPng = 'On' #On or Off
 saveDataH5 = 'On'
 
 dog_init = [0., 0.]		    #np.random.rand(2)*3.0+1.
-sheep_init = 'Random'		#Random or Grid or Anular
-dog_vel_init = [0.0, 0.0]
+sheep_init = 'Random'		  #Random or Grid or Anular
+dog_vel_init = [0.1, 0.1]
 sheep_vel_init = 0.
 sheep_area = 1.
 

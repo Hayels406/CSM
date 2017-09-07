@@ -24,6 +24,5 @@ if [ -f $INSTALLDIR_TOPSY/params.py.dist ]; then
 	touch ./params.py
   ln -s $INSTALLDIR_TOPSY/params.py.dist ./defaultParams.py
 	ln -s $INSTALLDIR_TOPSY/fixedParams.py.dist ./fixedParams.py
-  ln -s $INSTALLDIR_TOPSY/job.qsub ./job.qsub
 	ln -s $INSTALLDIR_TOPSY/CSM.py ./CSM.py
 fi
