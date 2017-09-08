@@ -4,16 +4,22 @@ import matplotlib.pyplot as plt
 import sys
 import h5py
 import os
+
 from matplotlib.colors import LinearSegmentedColormap
 from sklearn.neighbors import KDTree
 from scipy.spatial import Voronoi
 from scipy.spatial.distance import cdist
+
 sys.dont_write_bytecode = True
 sys.path.insert(0,os.getcwd())
 
 from defaultParams import *
 from fixedParams import *
 from params import *
+
+if os.getcwd().rfind('share'):
+	import matplotlib as mpl
+	mpl.use('Agg')
 
 def makeSquareWalls(wallTop,wallBottom,wallLeft,wallRight):
 	#Walls defined by four lines: Ax+By+C = 0

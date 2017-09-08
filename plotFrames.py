@@ -1,7 +1,5 @@
 import numpy as np
 import math
-import matplotlib as mpl
-mpl.use('Agg')
 import matplotlib.pyplot as plt
 import sys
 import h5py
@@ -19,7 +17,10 @@ from CSM import loadData
 from CSM import initPlot
 from CSM import plotDataPositions
 
-
+if os.getcwd().rfind('share'):
+	import matplotlib as mpl
+	mpl.use('Agg')
+    
 files = sorted(glob('*.h5'))
 
 for dataName in files:
