@@ -1,10 +1,13 @@
 import numpy as np
 import h5py
-import matplotlib.pyplot as plt
 from glob import glob
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_samples, silhouette_score
 import os
+if os.getcwd().rfind('share'):
+	import matplotlib as mpl
+	mpl.use('Agg')
+import matplotlib.pyplot as plt
 
 dFile = glob('*h5')[0]
 av_score = []
@@ -41,7 +44,7 @@ if int(NP/groupSize) != 1:
         clusterer = KMeans(n_clusters=num_clusters, random_state=10)
         cluster_labels = clusterer.fit_predict(data['sheep'][itime])
 
-        for i in range(10):
+        for i in range(num_clusters):
             plt.scatter(data['sheep'][itime][cluster_labels == i][:,0], data['sheep'][itime][cluster_labels == i][:,1])
             plt.axes().set_aspect('equal')
         plt.savefig('plots/clusters.png')
