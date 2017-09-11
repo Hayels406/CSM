@@ -1,10 +1,13 @@
 import numpy as np
 import math
+import os
+if os.getcwd().rfind('share'):
+	import matplotlib as mpl
+	mpl.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib import rc
 import sys
 import h5py
-import os
 from glob import glob
 import matplotlib.mlab as mlab
 from scipy.spatial import Voronoi, voronoi_plot_2d

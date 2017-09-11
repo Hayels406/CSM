@@ -1,9 +1,12 @@
 import numpy as np
 import math
-import matplotlib.pyplot as plt
 import sys
 import h5py
 import os
+if os.getcwd().rfind('share'):
+	import matplotlib as mpl
+	mpl.use('Agg')
+import matplotlib.pyplot as plt
 
 from matplotlib.colors import LinearSegmentedColormap
 from sklearn.neighbors import KDTree
@@ -17,9 +20,7 @@ from defaultParams import *
 from fixedParams import *
 from params import *
 
-if os.getcwd().rfind('share'):
-	import matplotlib as mpl
-	mpl.use('Agg')
+
 
 def makeSquareWalls(wallTop,wallBottom,wallLeft,wallRight):
 	#Walls defined by four lines: Ax+By+C = 0
