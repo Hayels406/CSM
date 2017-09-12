@@ -59,8 +59,6 @@ def init():
 		data['forceWalls'] = np.zeros((cachedTimesteps,NP,2))
 		data['forceWallsDog'] = np.zeros((cachedTimesteps,2))
 		data['dist_dw'] = np.zeros((cachedTimesteps,4))
-		if sheepSheepInteration == 'On':
-			data['forceSheep'] = np.zeros((cachedTimesteps, NP, 2))
 	elif wallType == 'Circular':
 		data['walls'] = [wallTop]
 		data['dist_iw'] = np.zeros((cachedTimesteps,NP))
@@ -69,6 +67,9 @@ def init():
 		data['dist_dw'] = np.zeros((cachedTimesteps))
 	else:
 		data['walls'] = []
+
+	if sheepSheepInteration == 'On':
+		data['forceSheep'] = np.zeros((cachedTimesteps, NP, 2))
 
 	data['alive'] = np.zeros((cachedTimesteps, NP)) == 0
 
