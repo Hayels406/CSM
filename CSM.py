@@ -487,7 +487,7 @@ def plotDataPositions(data, tstep, dQuiv, sQuiv, savePlotPng):
 		plt.pause(0.005)
 
 def saveData(data):
-	h5f = h5py.File('data-%07d.h5'%int(data['t'][itime]), 'w')
+	h5f = h5py.File('data-%05d-'+e+'.h5'%int(data['t'][itime]), 'w')
 	h5f.create_dataset('itime', data = [itime])
 	for k in data.keys():
 		if type(data[k]) is dict:
