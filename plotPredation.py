@@ -9,7 +9,7 @@ import os
 from glob import glob
 
 
-dataFile = glob('*/*.h5')
+dataFile = glob('*/*-1.h5')
 save = []
 
 def func(x, a, b):

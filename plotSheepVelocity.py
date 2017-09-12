@@ -20,7 +20,7 @@ from params import *
 from CSM import init
 from CSM import loadData
 
-files = sorted(glob('*.h5'))
+files = sorted(glob('*-1.h5'))
 t = np.array([])
 av = np.array([])
 for dataName in files:
