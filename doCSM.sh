@@ -16,7 +16,7 @@ fi
 rm -f *.h5
 rm -f *.pyc
 
-python -b ~/CSM/CSM.py
+python -b ~/CSM/CSM.py $1
 
 mkdir -p frames
 rm -f frames/*

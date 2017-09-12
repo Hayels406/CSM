@@ -2,6 +2,7 @@ import numpy as np
 import math
 import sys
 import h5py
+import sys
 import os
 if os.getcwd().rfind('share') > 0:
 	import matplotlib as mpl
@@ -579,6 +580,7 @@ if __name__ == "__main__":
 	data = init()
 	itime = 0
 	initCond(data)
+	e = sys.argv[1]
 	if predOff == True:
 		b = 0
 	if loadFromFile == 'On':
