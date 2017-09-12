@@ -38,8 +38,6 @@ python $DIR/plotSheepVelocity.py
 python $DIR/plotDogAcceleration.py
 python $DIR/plotDogVelocity.py
 python $DIR/plotTimeStep.py
-python $DIR/plotConvexHull.py
-python $DIR/plotVoronoiDistances.py
 python $DIR/findClusters.py
 
 if [ -f $MAC/params.py.dist ]; then

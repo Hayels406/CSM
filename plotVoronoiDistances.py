@@ -1,11 +1,14 @@
 import numpy as np
 import math
 import os
-if os.getcwd().rfind('share'):
+if os.getcwd().rfind('share') > 0:
+	topsy = True
 	import matplotlib as mpl
 	mpl.use('Agg')
+else:
+	topsy = False
+	from matplotlib import rc
 import matplotlib.pyplot as plt
-from matplotlib import rc
 import sys
 import h5py
 from glob import glob
@@ -14,6 +17,7 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 from scipy.stats import gamma
 sys.dont_write_bytecode = True
 sys.path.insert(0,os.getcwd())
+
 from defaultParams import *
 from params import *
 from fixedParams import *
@@ -36,8 +40,9 @@ for pair in vertexIndex:
 
 dist_v = np.array(dist_v)[np.array(dist_v) < .5]
 
-rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
-rc('text', usetex=True)
+if topsy == False:
+	rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+	rc('text', usetex=True)
 n, bins, patches = plt.hist(dist_v, bins = 100)
 plt.xlabel('Distance between Voronoi vertices', fontsize = 18)
 plt.ylabel('Frequency', fontsize = 18)

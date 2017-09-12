@@ -1,10 +1,15 @@
 import numpy as np
 import math
-import matplotlib.pyplot as plt
-from matplotlib import rc
 import sys
 import h5py
-import os
+if os.getcwd().rfind('share') > 0:
+    topsy = True
+	import matplotlib as mpl
+	mpl.use('Agg')
+else:
+    from matplotlib import rc
+    topsy = False
+import matplotlib.pyplot as plt
 from glob import glob
 
 f, axarr = plt.subplots(4, sharex=True)
@@ -73,8 +78,9 @@ axarr[1].set_ylabel('Flocking', fontsize = 18)
 axarr[2].set_ylabel('Walls', fontsize = 18)
 axarr[3].set_ylabel('Flocking*GroupSize', fontsize = 18)
 
-rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
-rc('text', usetex=True)
+if topsy == False:
+    rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+    rc('text', usetex=True)
 
 axarr[0].set_xlabel('Time', fontsize = 18)
 axarr[1].set_xlabel('Time', fontsize = 18)
@@ -85,13 +91,3 @@ lgd = axarr[0].legend(loc = 'upper right', bbox_to_anchor=(1.4, 1.))
 for label in axarr[0].get_xticklabels() + axarr[0].get_yticklabels() + axarr[1].get_xticklabels() + axarr[1].get_yticklabels() + axarr[2].get_xticklabels() + axarr[2].get_yticklabels():
     label.set_fontsize(16)
 plt.savefig('./forces.png', bbox_extra_artists=(lgd,axarr[0],axarr[1],axarr[2],), bbox_inches='tight')
-#maxLen = 0
-#for i in range(np.shape(save)[0]):
-#    if maxLen < len(save[i]):
-#        maxLen = len(save[i])
-
-#for i in range(np.shape(save)[0]):
-#    while len(save[i]) < maxLen:
-#        save[i].append('')
-
-#np.savetxt('./predation.csv', np.transpose(np.array(save)), fmt = '%s', delimiter = ',')

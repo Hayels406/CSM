@@ -51,17 +51,3 @@ meanPlot = plt.figure()
 plt.plot(t, meanD, lw = 2)
 plt.axhline(mean(meanD), color = 'r', lw = 2)
 meanPlot.savefig('meanDisance.png')
-
-#new  = plt.figure()
-#from mpl_toolkits.axes_grid1 import AxesGrid
-#gr = AxesGrid(plt.gcf(),111,[3,1], axes_pad=0,)
-#gr[0].plot(data['t'], data['dist_ij']['min'])
-#gr[1].plot(data['t'], data['dist_ij']['max'])
-#gr[1].locator_params(axis = 'y', prune = 'upper')
-#gr[2].plot(data['t'], data['dist_ij']['mean'])
-#gr[2].locator_params(axis = 'y', prune = 'upper')
-#for g in gr:
-#    g.set_ylim(0.9, 10)
-
-#new.show()
-#print data

@@ -1,11 +1,15 @@
 import numpy as np
 import math
 import os
-if os.getcwd().rfind('share'):
+if os.getcwd().rfind('share') > 0:
+	topsy = True
 	import matplotlib as mpl
 	mpl.use('Agg')
+else:
+	topsy = False
+	from matplotlib import rc
+
 import matplotlib.pyplot as plt
-from matplotlib import rc
 import sys
 import h5py
 from glob import glob
@@ -42,8 +46,9 @@ for dataName in files:
 plt.plot(t[t<=2000][10:], acc[t<=2000][10:, :], alpha = 0.2)
 plt.plot(t[t<=2000][10:], av[t<=2000][10:,])
 plt.plot(t[t<=2000][10:], np.array(maxAcc)[t<=2000][10:], color = 'r', ls = '--')
-rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
-rc('text', usetex=True)
+if topsy == False:
+	rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+	rc('text', usetex=True)
 plt.yscale('log')
 plt.ylabel('log(Acceleration)')
 plt.xlabel('Time')

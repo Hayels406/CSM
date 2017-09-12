@@ -3,7 +3,7 @@ import math
 import sys
 import h5py
 import os
-if os.getcwd().rfind('share'):
+if os.getcwd().rfind('share') > 0:
 	import matplotlib as mpl
 	mpl.use('Agg')
 import matplotlib.pyplot as plt

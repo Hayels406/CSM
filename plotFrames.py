@@ -21,9 +21,13 @@ from CSM import loadData
 from CSM import initPlot
 from CSM import plotDataPositions
 
-if os.getcwd().rfind('share'):
+if os.getcwd().rfind('share') > 0:
 	import matplotlib as mpl
 	mpl.use('Agg')
+	topsy = True
+else:
+	topsy = False
+	
 
 files = sorted(glob('*.h5'))
 
