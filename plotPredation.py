@@ -7,6 +7,7 @@ import sys
 import h5py
 import os
 from glob import glob
+from params import *
 
 
 dataFile = glob('*/*-1.h5')
@@ -58,7 +59,7 @@ for dFile in dataFile:
     print lab + value, a[-1], b[-1]
 
 
-plt.axhline(400, color = 'red', ls = '--')
+plt.axhline(500, color = 'red', ls = '--')
 rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 rc('text', usetex=True)
 plt.xlabel('Time', fontsize = 18)
@@ -91,9 +92,9 @@ for dFile in dataFile:
     data['t'] = np.copy(h5f['t'])
     plt.plot(data['t'][:itime], data['alive'][:itime].sum(axis = 1), lw = 2, label = lab + value)
 
-plt.ylim(0,405)
+plt.ylim(0,NP +5)
 plt.xlim(0,100)
-plt.axhline(400, color = 'red', ls = '--')
+plt.axhline(NP, color = 'red', ls = '--')
 rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 rc('text', usetex=True)
 plt.xlabel('Time', fontsize = 18)
