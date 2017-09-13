@@ -13,7 +13,7 @@ if [ -f $INSTALLDIR_HOME/params.py.dist ]; then
 	DIR=$INSTALLDIR_HOME
 fi
 
-rm -f *.h5
+rm -f *-$1.h5
 rm -f *.pyc
 
 python -b ~/CSM/CSM.py $1
