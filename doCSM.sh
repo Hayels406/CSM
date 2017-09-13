@@ -19,6 +19,7 @@ rm -f *.pyc
 python -b ~/CSM/CSM.py $1
 
 if [ "$1" = "1" ]; then
+	echo 'Starting frames'
 	mkdir -p frames
 	rm -f frames/*
 	python $DIR/plotFrames.py
@@ -33,7 +34,7 @@ if [ "$1" = "1" ]; then
 
 	mkdir -p plots
 	mkdir -p output
-
+	echo 'Starting plots'
 	python $DIR/plotSheepAcceleration.py
 	python $DIR/plotSheepVelocity.py
 	python $DIR/plotDogAcceleration.py
