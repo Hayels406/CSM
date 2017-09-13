@@ -48,3 +48,4 @@ if [ "$1" = "1" ]; then
 	fi
 
 fi
+echo 'Done'
