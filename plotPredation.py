@@ -1,11 +1,18 @@
 import numpy as np
 import math
+import os
+if os.getcwd().rfind('share') > 0:
+	topsy = True
+	import matplotlib as mpl
+	mpl.use('Agg')
+else:
+	topsy = False
+	from matplotlib import rc
 import matplotlib.pyplot as plt
 from matplotlib import rc
 from scipy.optimize import curve_fit
 import sys
 import h5py
-import os
 from glob import glob
 from params import *
 
