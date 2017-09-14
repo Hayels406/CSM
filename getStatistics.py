@@ -38,3 +38,15 @@ for dFile in dataFile:
 		avA = avA + [[np.mean(data['sheepAcc'][i][data['alive'][i]])]]
 
 	average = average + [[np.array(avV).mean(), np.array(avA).mean(), data['dogVel'][:itime].mean(), data['dogAcc'][:itime].mean()]]
+
+average = np.array(average)
+
+plt.plot(average[:,0], lab = 'Prey Vel')
+plt.scatter(range(10), average[:,0])
+plt.plot(average[:,1], lab = 'Prey Acc')
+plt.scatter(range(10), average[:,1])
+plt.plot(average[:,2], lab = 'Pred Vel')
+plt.scatter(range(10), average[:,2])
+plt.plot(average[:,3], lab = 'Pred Acc')
+plt.scatter(range(10), average[:,3])
+plt.savefig('del.png')
