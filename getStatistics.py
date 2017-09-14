@@ -35,9 +35,9 @@ for dFile in dataFile:
 	avA = []
 	for i in range(itime):
 		avV = avV + [[  np.mean(np.sqrt((data['sheepVel'][i][data['alive'][i]]**2).sum(axis = 1)))   ]]
-		avA = avA + [[np.mean(data['sheepAcc'][i][data['alive'][i]])]]
+		avA = avA + [[np.mean(np.sqrt((data['sheepAcc'][i][data['alive'][i]]**2).sum(axis = 1)))]]
 
-	average = average + [[np.array(avV).mean(), np.array(avA).mean(), data['dogVel'][:itime].mean(), data['dogAcc'][:itime].mean()]]
+	average = average + [[np.array(avV).mean(), np.array(avA).mean(), np.mean(np.sqrt((data['dogVel']**2).sum(axis = 1))),             np.mean(np.sqrt((data['dogAcc']**2).sum(axis = 1)))]]
 
 average = np.array(average)
 
