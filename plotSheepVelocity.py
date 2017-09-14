@@ -23,7 +23,7 @@ from CSM import loadData
 files = sorted(glob('*-1.h5'))
 t = np.array([])
 av = np.array([])
-maxVel
+maxVel = np.array([])
 for dataName in files:
     data = init()
     itime = loadData(data,dataName)
