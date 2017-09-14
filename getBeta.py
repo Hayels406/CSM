@@ -52,4 +52,4 @@ plt.legend(loc = 'upper right', fontsize = 16)
 plt.savefig('./plots/ensemblePredation.png')
 
 print a
-print b
+print b 
