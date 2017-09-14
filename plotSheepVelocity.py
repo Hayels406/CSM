@@ -32,8 +32,8 @@ for dataName in files:
         data['sheepVel'] = data['sheepVel'][0:itime]
         Vel = np.sqrt((data['sheepVel']**2).sum(axis = 2))[:,data['alive'][itime]][:,0:20]
         for i in range(itime):
-            maxVel = np.max(np.sqrt((data['sheepVel'][data['alive'][i]]**2).sum(axis = 2)), axis = 1).tolist()
-            av = np.append(av, np.sqrt((data['sheepVel'][data['alive'][i]]**2).sum(axis = 2)).mean(axis = 1))
+            maxVel = np.max(np.sqrt((data['sheepVel'][i][data['alive'][i]]**2).sum(axis = 2)), axis = 1).tolist()
+            av = np.append(av, np.sqrt((data['sheepVel'][i][data['alive'][i]]**2).sum(axis = 2)).mean(axis = 1))
     else:
         data['t'] = data['t'][4:itime]
         data['sheepVel'] = data['sheepVel'][4:itime]
