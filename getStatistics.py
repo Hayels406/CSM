@@ -41,12 +41,12 @@ for dFile in dataFile:
 
 average = np.array(average)
 
-plt.plot(average[:,0], lab = 'Prey Vel')
+plt.plot(average[:,0], label = 'Prey Vel')
 plt.scatter(range(10), average[:,0])
-plt.plot(average[:,1], lab = 'Prey Acc')
+plt.plot(average[:,1], label = 'Prey Acc')
 plt.scatter(range(10), average[:,1])
-plt.plot(average[:,2], lab = 'Pred Vel')
+plt.plot(average[:,2], label = 'Pred Vel')
 plt.scatter(range(10), average[:,2])
-plt.plot(average[:,3], lab = 'Pred Acc')
+plt.plot(average[:,3], label = 'Pred Acc')
 plt.scatter(range(10), average[:,3])
 plt.savefig('del.png')
