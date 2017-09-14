@@ -50,4 +50,6 @@ plt.ylabel('$N(t)$')
 plt.legend(loc = 'upper right', fontsize = 16)
 plt.savefig('./plots/ensemblePredation.png')
 
-print b
+file = open('./output/beta','w')
+file.write(str(np.array(b).mean()))
+file.close()
