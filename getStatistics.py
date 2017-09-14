@@ -22,9 +22,9 @@ average = []
 
 for dfile in dataFile:
 	data = dict()
-    h5f = h5py.File(dFile,'r')
-    itime = np.copy(h5f['itime'])[0]
-    data['alive'] = np.copy(h5f['alive'])
+	h5f = h5py.File(dFile,'r')
+	itime = np.copy(h5f['itime'])[0]
+	data['alive'] = np.copy(h5f['alive'])
 	data['sheepAcc'] = np.copy(h5f['sheepAcc'])
 	data['sheepVel'] = np.copy(h5f['sheepVel'])
 	data['dogAcc'] = np.copy(h5f['dogAcc'])
