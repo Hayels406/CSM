@@ -47,4 +47,4 @@ if topsy == False:
 plt.xlabel('Time', fontsize = 18)
 plt.ylabel('$N(t)$')
 plt.legend(loc = 'upper right', fontsize = 16)
-plt.show()
+plt.savefig('./plots/ensemblePredation.png')
