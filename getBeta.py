@@ -17,10 +17,10 @@ from glob import glob
 
 dataFile = glob('data*-*.h5')
 
-def func(x, a, b):
-    return a*np.exp(-b*x)
+def func(x, b):
+    return NP*np.exp(-b*x)
 
-a,b,e = [[],[],[]]
+b,e = [[],[]]
 for dFile in dataFile:
 	print dFile
 	value = dFile[dFile.rfind('-')+1:dFile.rfind('.')]
@@ -36,7 +36,6 @@ for dFile in dataFile:
 
 	plt.plot(data['t'][:itime], data['alive'][:itime].sum(axis = 1), lw = 2, label = 'Ensemble:' + value)
 	popt, pcov = curve_fit(func, data['t'][:itime], data['alive'][:itime].sum(axis = 1))
-	a = a + [popt[0]]
 	b = b + [popt[1]]
 	e = e + [int(value)]
 
@@ -51,5 +50,4 @@ plt.ylabel('$N(t)$')
 plt.legend(loc = 'upper right', fontsize = 16)
 plt.savefig('./plots/ensemblePredation.png')
 
-print a
-print b 
+print b
