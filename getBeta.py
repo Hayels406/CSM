@@ -24,7 +24,7 @@ def func(x, a, b):
     return a*np.exp(-b*x)
 
 a,b,e = [[],[],[]]
-for dFile in dataFile:
+for dFile in dataFile[0]:
 	value = dFile[dFile.rfind('-')+1:dFile.rfind('.')]
 
 	data = dict()
