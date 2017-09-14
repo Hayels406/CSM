@@ -15,10 +15,6 @@ import sys
 import h5py
 from glob import glob
 
-from params import *
-print NP
-print groupSize
-
 dataFile = glob('data*-*.h5')
 
 def func(x, a, b):
@@ -33,6 +29,9 @@ for dFile in [dataFile[0]]:
 	itime = np.copy(h5f['itime'])[0]
 	data['alive'] = np.copy(h5f['alive'])
 	data['t'] = np.copy(h5f['t'])
+	
+	if dFile == dataFile[0]:
+        NP = np.shape(data['alive'])[1]
 
 	plt.plot(data['t'][:itime], data['alive'][:itime].sum(axis = 1), lw = 2, label = 'Ensemble:' + value)
 	popt, pcov = curve_fit(func, data['t'][:itime], data['alive'][:itime].sum(axis = 1))
