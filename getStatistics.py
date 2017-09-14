@@ -20,7 +20,7 @@ from params import *
 dataFile = glob('data*-*.h5')
 average = []
 
-for dfile in dataFile:
+for dFile in dataFile:
 	data = dict()
 	h5f = h5py.File(dFile,'r')
 	itime = np.copy(h5f['itime'])[0]
