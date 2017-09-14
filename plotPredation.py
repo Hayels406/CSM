@@ -14,7 +14,6 @@ from scipy.optimize import curve_fit
 import sys
 import h5py
 from glob import glob
-from params import *
 
 
 dataFile = glob('*/*-1.h5')
@@ -53,6 +52,10 @@ for dFile in dataFile:
     itime = np.copy(h5f['itime'])[0]
     data['alive'] = np.copy(h5f['alive'])
     data['t'] = np.copy(h5f['t'])
+
+    if dFile == dataFile[0]:
+        NP = np.shape(data['alive'])[1]
+
     t = ['t_' + dFile[dFile.rfind('th')+2:dFile.rfind('/')].replace('-', '.')]
     alive = ['alive_' + dFile[dFile.rfind('th')+2:dFile.rfind('/')].replace('-', '.')]
     plt.semilogy(data['t'][:itime], data['alive'][:itime].sum(axis = 1), lw = 2, label = lab + value)
@@ -66,7 +69,7 @@ for dFile in dataFile:
     print lab + value, a[-1], b[-1]
 
 
-plt.axhline(500, color = 'red', ls = '--')
+plt.axhline(np.log(NP), color = 'red', ls = '--')
 rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 rc('text', usetex=True)
 plt.xlabel('Time', fontsize = 18)
@@ -99,7 +102,7 @@ for dFile in dataFile:
     data['t'] = np.copy(h5f['t'])
     plt.plot(data['t'][:itime], data['alive'][:itime].sum(axis = 1), lw = 2, label = lab + value)
 
-plt.ylim(0,NP +5)
+plt.ylim(0,NP + 5)
 plt.xlim(0,100)
 plt.axhline(NP, color = 'red', ls = '--')
 if topsy == False:
