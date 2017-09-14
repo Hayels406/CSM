@@ -16,9 +16,10 @@ import h5py
 from glob import glob
 
 from params import *
+print NP
+print groupSize
 
 dataFile = glob('data*-*.h5')
-print dataFile
 
 def func(x, a, b):
     return a*np.exp(-b*x)
