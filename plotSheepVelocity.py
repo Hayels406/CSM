@@ -32,12 +32,12 @@ for dataName in files:
         data['sheepVel'] = data['sheepVel'][0:itime]
         Vel = np.sqrt((data['sheepVel']**2).sum(axis = 2))[:,data['alive'][itime]][:,0:20]
         for i in range(itime):
-            maxVel = np.max(np.sqrt((data['sheepVel'][i][data['alive'][i]]**2).sum(axis = 2)), axis = 1).tolist()
-            av = np.append(av, np.sqrt((data['sheepVel'][i][data['alive'][i]]**2).sum(axis = 2)).mean(axis = 1))
+            maxVel = np.max(np.sqrt((data['sheepVel'][i][data['alive'][i]]**2).sum(axis = 1)), axis = 0).tolist()
+            av = np.append(av, np.sqrt((data['sheepVel'][i][data['alive'][i]]**2).sum(axis = 1)).mean(axis = 0))
     else:
         data['t'] = data['t'][4:itime]
         data['sheepVel'] = data['sheepVel'][4:itime]
-        Vel = np.append(Vel, np.sqrt((data['sheepVel']**2).sum(axis = 2))[data['alive'][itime]][:,0:20], axis = 0)
+        Vel = np.append(Vel, np.sqrt((data['sheepVel']**2).sum(axis = 1))[data['alive'][itime]][:,0:20], axis = 0)
         for i in range(itime):
             maxVel = np.max(np.sqrt((data['sheepVel'][data['alive'][i]]**2).sum(axis = 2)), axis = 1).tolist()
             av = np.append(av, np.sqrt((data['sheepVel'][data['alive'][i]]**2).sum(axis = 2)).mean(axis = 1))
