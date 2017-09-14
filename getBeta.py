@@ -36,7 +36,7 @@ for dFile in dataFile:
 
 	plt.plot(data['t'][:itime], data['alive'][:itime].sum(axis = 1), lw = 2, label = 'Ensemble:' + value)
 	popt, pcov = curve_fit(func, data['t'][:itime], data['alive'][:itime].sum(axis = 1))
-	b = b + [popt[1]]
+	b = b + [popt[0]]
 	e = e + [int(value)]
 
 plt.ylim(0,NP +5)
