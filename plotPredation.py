@@ -102,8 +102,9 @@ for dFile in dataFile:
 plt.ylim(0,NP +5)
 plt.xlim(0,100)
 plt.axhline(NP, color = 'red', ls = '--')
-rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
-rc('text', usetex=True)
+if topsy == False:
+    rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+    rc('text', usetex=True)
 plt.xlabel('Time', fontsize = 18)
 plt.ylabel('$N(t)$')
 plt.legend(loc = 'upper right', fontsize = 16)
