@@ -22,6 +22,7 @@ def func(x, a, b):
 
 a,b,e = [[],[],[]]
 for dFile in dataFile[0]:
+	print dFile
 	value = dFile[dFile.rfind('-')+1:dFile.rfind('.')]
 
 	data = dict()
