@@ -13,7 +13,7 @@ if [ -f $INSTALLDIR_HOME/params.py.dist ]; then
 	DIR=$INSTALLDIR_HOME
 fi
 
-HERE=pwd
+HERE=$(pwd)
 for wall in Sqaure Circular; do
 	echo $HERE
 done
