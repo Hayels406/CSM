@@ -34,7 +34,7 @@ for dFile in dataFile:
 	if dFile == dataFile[0]:
 		NP = np.shape(data['alive'])[1]
 
-	plt.plot(data['t'][:itime], data['alive'][:itime].sum(axis = 1), lw = 2, label = 'Ensemble:' + value)
+	plt.plot(data['t'][:itime], data['alive'][:itime].sum(axis = 1), lw = 2, label = 'Ensemble:' + value, color = 'k', alpha = 0.5)
 	popt, pcov = curve_fit(func, data['t'][:itime], data['alive'][:itime].sum(axis = 1))
 	b = b + [popt[0]]
 	e = e + [int(value)]
@@ -42,6 +42,7 @@ for dFile in dataFile:
 plt.ylim(0,NP +5)
 plt.xlim(0,100)
 plt.axhline(NP, color = 'red', ls = '--')
+plt.plot(np.linspace(0, 100, 1000), func(np.linspace(0, 100, 1000), np.mean(b)), label = 'Fit')
 if topsy == False:
 	rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 	rc('text', usetex=True)

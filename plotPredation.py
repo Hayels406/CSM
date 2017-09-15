@@ -9,7 +9,6 @@ else:
 	topsy = False
 	from matplotlib import rc
 import matplotlib.pyplot as plt
-from matplotlib import rc
 from scipy.optimize import curve_fit
 import sys
 import h5py
