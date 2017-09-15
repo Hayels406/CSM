@@ -20,6 +20,7 @@ for wall in Square Circular; do
 		cd $pred
 		for ni in group*; do
 			cd $ni
+			echo $(pwd)
 			python -b $DIR/getStatistics.py
 			python -b $DIR/getBeta.py
 			cd ..
