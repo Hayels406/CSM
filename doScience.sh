@@ -16,6 +16,9 @@ fi
 HERE=$(pwd)
 for wall in Square Circular; do
 	cd $wall
-	echo $(pwd)
+	for pred in pred*; do
+		cd $pred
+		echo $(pwd)
+		cd ..
 	cd $HERE
 done
