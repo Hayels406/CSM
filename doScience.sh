@@ -20,5 +20,6 @@ for wall in Square Circular; do
 		cd $pred
 		echo $(pwd)
 		cd ..
+	done
 	cd $HERE
 done
