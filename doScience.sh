@@ -14,6 +14,8 @@ if [ -f $INSTALLDIR_HOME/params.py.dist ]; then
 fi
 
 HERE=$(pwd)
-for wall in Sqaure Circular; do
-	echo $HERE
+for wall in Square Circular; do
+	cd $wall
+	echo $(pwd)
+	cd $HERE
 done
