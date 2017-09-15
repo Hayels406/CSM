@@ -16,3 +16,4 @@ fi
 HERE=pwd
 for wall in Sqaure Circular; do
 	echo ls
+done
