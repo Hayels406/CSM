@@ -18,9 +18,11 @@ from glob import glob
 dataFile = glob('data*-*.h5')
 
 def func(x, b):
-    return NP*np.exp(-b*x**2)
+    return NP*np.exp(-b*x)
 
-b,e = [[],[]]
+alive = np.array([])
+time = np.array([])
+
 for dFile in dataFile:
 	print dFile
 	value = dFile[dFile.rfind('-')+1:dFile.rfind('.')]
@@ -31,19 +33,22 @@ for dFile in dataFile:
 	data['alive'] = np.copy(h5f['alive'])
 	data['t'] = np.copy(h5f['t'])
 
+	alive = np.append(alive, data['alive'][:itime].sum(axis = 1))
+	time = np.append(time, data['t'][:itime])
 	if dFile == dataFile[0]:
 		NP = np.shape(data['alive'])[1]
 		plt.plot(data['t'][:itime], data['alive'][:itime].sum(axis = 1), lw = 2, color = 'k', alpha = 0.5, label = 'Iterations')
 	else:
 		plt.plot(data['t'][:itime], data['alive'][:itime].sum(axis = 1), lw = 2, color = 'k', alpha = 0.5)
-	popt, pcov = curve_fit(func, data['t'][:itime], data['alive'][:itime].sum(axis = 1))
-	b = b + [popt[0]]
-	e = e + [int(value)]
+
+
+popt, pcov = curve_fit(func, time, alive)
+b = popt[0]
 
 plt.ylim(0,NP +5)
 plt.xlim(0,100)
 plt.axhline(NP, color = 'red', ls = '--')
-plt.plot(np.linspace(0, 100, 1000), func(np.linspace(0, 100, 1000), np.mean(b)), label = 'Fit')
+plt.plot(np.linspace(0, 100, 1000), func(np.linspace(0, 100, 1000), b), label = 'Fit')
 if topsy == False:
 	rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 	rc('text', usetex=True)
@@ -53,5 +58,5 @@ plt.legend(loc = 'upper right', fontsize = 16)
 plt.savefig('./plots/ensemblePredation.png')
 
 file = open('./output/beta','w')
-file.write(str(np.array(b).mean()))
+file.write(str(b))
 file.close()
