@@ -18,7 +18,7 @@ from glob import glob
 dataFile = glob('data*-*.h5')
 
 def func(x, b):
-    return NP*np.exp(-b*x)
+    return NP*np.exp(-b*x**2)
 
 b,e = [[],[]]
 for dFile in dataFile:
@@ -33,8 +33,9 @@ for dFile in dataFile:
 
 	if dFile == dataFile[0]:
 		NP = np.shape(data['alive'])[1]
-
-	plt.plot(data['t'][:itime], data['alive'][:itime].sum(axis = 1), lw = 2, label = 'Ensemble:' + value, color = 'k', alpha = 0.5)
+		plt.plot(data['t'][:itime], data['alive'][:itime].sum(axis = 1), lw = 2, color = 'k', alpha = 0.5, label = 'Iterations')
+	else:
+		plt.plot(data['t'][:itime], data['alive'][:itime].sum(axis = 1), lw = 2, color = 'k', alpha = 0.5)
 	popt, pcov = curve_fit(func, data['t'][:itime], data['alive'][:itime].sum(axis = 1))
 	b = b + [popt[0]]
 	e = e + [int(value)]
