@@ -8,9 +8,6 @@ if [ -f $INSTALLDIR/params.py.dist ]; then
 fi
 if [ -f $INSTALLDIR_TOPSY/params.py.dist ]; then
 	DIR=$INSTALLDIR_TOPSY
-	module load python/2.7.9
-	module load hdf5
-	module load topsy-openmpi 
 fi
 if [ -f $INSTALLDIR_HOME/params.py.dist ]; then
 	DIR=$INSTALLDIR_HOME
@@ -24,8 +21,7 @@ for wall in Square Circular; do
 		for ni in group*; do
 			cd $ni
 			echo $(pwd)
-			python -b $DIR/getStatistics.py
-			python -b $DIR/getBeta.py
+			qsub $HERE/statsJob.qsub
 			cd ..
 		done
 		cd ..
