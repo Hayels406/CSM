@@ -18,7 +18,11 @@ for wall in Square Circular; do
 	cd $wall
 	for pred in pred*; do
 		cd $pred
-		echo $(pwd)
+		for ni in group*; do
+			cd $ni
+			echo $(pwd)
+			cd ..
+		done
 		cd ..
 	done
 	cd $HERE
