@@ -16,6 +16,8 @@ import h5py
 from glob import glob
 
 dataFile = glob('data*-*.h5')
+pwd = os.getcwd()
+k = int(pwd[pwd.rfind('pred')+4:pwd.rfind('/')])
 
 def func(x, b):
     return NP*np.exp(-b*x)
@@ -42,7 +44,7 @@ for dFile in dataFile:
 		plt.plot(data['t'][:itime], data['alive'][:itime].sum(axis = 1), lw = 2, color = 'k', alpha = 0.5)
 
 
-popt, pcov = curve_fit(func, time, alive)
+popt, pcov = curve_fit(func, time[alive > k], alive[alive > k])
 b = popt[0]
 
 plt.ylim(0,NP +5)
