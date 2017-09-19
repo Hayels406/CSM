@@ -28,7 +28,6 @@ k = np.array([])
 Ni = np.array([])
 beta = np.array([])
 for fileLoc in filesSquare:
-	fileLoc[fileLoc.rfind('/group')]
 	k = np.append(k, int(fileLoc[fileLoc.rfind('pred')+4:fileLoc.rfind('/group')]))
 	Ni = np.append(Ni, int(fileLoc[fileLoc.rfind('group')+5:fileLoc.rfind('output')-1]))
 	file = open(fileLoc,'r')
