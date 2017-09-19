@@ -110,7 +110,7 @@ if topsy == False:
     rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
     rc('text', usetex=True)
 plt.xlabel('Time', fontsize = 18)
-plt.ylabel('$N(t)$')
+plt.ylabel('$N(t)$', fontsize = 18)
 plt.legend(loc = 'upper right', fontsize = 16)
 plt.savefig('./predation.png')
 
