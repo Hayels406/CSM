@@ -51,7 +51,10 @@ for dFile in dataFile:
 	else:
 		plt.plot(data['t'][:itime], data['alive'][:itime].sum(axis = 1), lw = 2, color = 'k', alpha = 0.5)
 
-t = np.min(time[alive < k])
+if len(time[alive < k]) == 0:
+	t = data['t'][itime]
+else:
+	t = np.min(time[alive < k])
 if t > 0.:
 	popt, pcov = curve_fit(func, time[alive > k], alive[alive > k])
 	a = popt[0]
