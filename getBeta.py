@@ -63,11 +63,12 @@ if t > 0.:
 else:
 	a = 0
 
-popt, pcov = curve_fit(func2, time[alive < k], alive[alive < k], p0=[0.01])
-print popt
-b = popt[0]
-fit = func2(np.linspace(t, 100, 1000), b)
-plt.plot(np.linspace(t, 100, 1000)[fit < k], fit[fit < k], label = 'Fit')
+if len(time[alive < k]) != 0:
+	popt, pcov = curve_fit(func2, time[alive < k], alive[alive < k], p0=[0.01])
+
+	b = popt[0]
+	fit = func2(np.linspace(t, 100, 1000), b)
+	plt.plot(np.linspace(t, 100, 1000)[fit < k], fit[fit < k], label = 'Fit')
 
 plt.ylim(0,NP +5)
 plt.xlim(0,100)
