@@ -19,8 +19,16 @@ dataFile = glob('data*-*.h5')
 pwd = os.getcwd()
 k = int(pwd[pwd.rfind('pred')+4:pwd.rfind('/')])
 
-def func(x, b):
-    return NP*np.exp(-b*x)
+def func(x, alpha):
+    return (NP+20)*np.exp(-alpha*x)
+
+def func2(x, beta):
+	if np.min(time[alive < k]) == 0.0:
+		t_m = 0.0
+	else:
+		t_m = (np.max(time[alive > k]) + np.min(time[alive < k]))/2.
+
+	return k*(np.exp(-beta*(x-t_m)))
 
 alive = np.array([])
 time = np.array([])
@@ -43,14 +51,25 @@ for dFile in dataFile:
 	else:
 		plt.plot(data['t'][:itime], data['alive'][:itime].sum(axis = 1), lw = 2, color = 'k', alpha = 0.5)
 
+t = np.min(time[alive < k])
+if t > 0.:
+	popt, pcov = curve_fit(func, time[alive > k], alive[alive > k])
+	a = popt[0]
+	fit = func(np.linspace(0, 100, 1000), a)
+	plt.plot(np.linspace(0, 100, 1000)[fit > k], fit[fit > k], label = 'Fit')
 
-popt, pcov = curve_fit(func, time[alive > k], alive[alive > k])
+popt, pcov = curve_fit(func2, time[alive < k], alive[alive < k], p0=[0.01])
+print popt
 b = popt[0]
+fit = func2(np.linspace(t, 100, 1000), b)
+plt.plot(np.linspace(t, 100, 1000)[fit < k], fit[fit < k], label = 'Fit')
 
 plt.ylim(0,NP +5)
 plt.xlim(0,100)
 plt.axhline(NP, color = 'red', ls = '--')
-plt.plot(np.linspace(0, 100, 1000), func(np.linspace(0, 100, 1000), b), label = 'Fit')
+plt.axhline(k, color = 'green', ls = ':')
+
+
 if topsy == False:
 	rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 	rc('text', usetex=True)
@@ -62,3 +81,4 @@ plt.savefig('./plots/ensemblePredation.png')
 file = open('./output/beta','w')
 file.write(str(b))
 file.close()
+plt.close()
