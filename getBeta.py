@@ -69,6 +69,8 @@ if len(time[alive < k]) != 0:
 	b = popt[0]
 	fit = func2(np.linspace(t, 100, 1000), b)
 	plt.plot(np.linspace(t, 100, 1000)[fit < k], fit[fit < k], label = 'Fit')
+else:
+	b = 0
 
 plt.ylim(0,NP +5)
 plt.xlim(0,100)
