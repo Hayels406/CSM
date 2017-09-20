@@ -57,6 +57,8 @@ if t > 0.:
 	a = popt[0]
 	fit = func(np.linspace(0, 100, 1000), a)
 	plt.plot(np.linspace(0, 100, 1000)[fit > k], fit[fit > k], label = 'Fit')
+else:
+	a = 0
 
 popt, pcov = curve_fit(func2, time[alive < k], alive[alive < k], p0=[0.01])
 print popt
@@ -82,3 +84,7 @@ file = open('./output/beta','w')
 file.write(str(b))
 file.close()
 plt.close()
+
+file = open('./output/alpha','w')
+file.write(str(a))
+file.close()
