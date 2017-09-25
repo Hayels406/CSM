@@ -48,7 +48,7 @@ ax.set_xticks(np.array(range(len(list(set(k))))) + 0.5)
 ax.set_xticklabels(sorted(list(set(k))))
 ax.set_yticks(np.array(range(len(list(set(Ni))))) + 0.5)
 ax.set_yticklabels(sorted(list(set(Ni))))
-plt.savefig('./Square/pcolor.png')
+plt.savefig('./Square/pcolorAlpha.png')
 
 plt.close()
 for i in range(len(set(k))):
@@ -87,7 +87,7 @@ ax.set_xticks(np.array(range(len(list(set(k))))) + 0.5)
 ax.set_xticklabels(sorted(list(set(k))))
 ax.set_yticks(np.array(range(len(list(set(Ni))))) + 0.5)
 ax.set_yticklabels(sorted(list(set(Ni))))
-plt.savefig('./Circular/pcolor.png')
+plt.savefig('./Circular/pcolorAlpha.png')
 plt.close()
 
 for i in range(len(set(k))):
