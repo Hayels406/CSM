@@ -19,12 +19,15 @@ dataFile = glob('data*-*.h5')
 pwd = os.getcwd()
 k = int(pwd[pwd.rfind('pred')+4:pwd.rfind('/')])
 
+burnIn = 495
+
 def func(x, alpha):
-    return (NP+20)*np.exp(-alpha*x)
+	t_m = (np.max(time[alive > burnIn]) + np.min(time[alive < burnIn]))/2.
+	return NP*np.exp(-alpha*(x-t_m))
 
 def func2(x, beta):
 	if np.min(time[alive < k]) == 0.0:
-		t_m = 0.0
+		t_m = (np.max(time[alive > burnIn]) + np.min(time[alive < burnIn]))/2.
 	else:
 		t_m = (np.max(time[alive > k]) + np.min(time[alive < k]))/2.
 
