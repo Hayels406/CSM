@@ -20,11 +20,11 @@ for wall in Square Circular; do
 		cd $pred
 		for ni in group*; do
 			cd $ni
-			echo $(pwd)
+			#echo $(pwd)
 			#qsub $HERE/statsJob.qsub
 			cd ..
 		done
-		python -b $DIR/plotGroupPredation.py
+		qsub $HERE/statsJob.qsub
 		cd ..
 	done
 	cd $HERE
