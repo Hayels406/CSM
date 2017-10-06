@@ -18,11 +18,11 @@ if topsy == False:
     rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
     rc('text', usetex=True)
 
-for stat in ['predAcc']:#, 'predVel', 'preyAcc', 'preyVel']:
-	filesSquare = glob('Square/pred200/group*/output/' + stat)
+for stat in ['predAcc', 'predVel', 'preyAcc', 'preyVel']:
+	filesSquare = glob('Square/pred*/group*/output/' + stat)
 	filesSquare.sort()
 
-	filesCircular = glob('Circular/pred200/group*/output/' + stat)
+	filesCircular = glob('Circular/pred*/group*/output/' + stat)
 	filesCircular.sort()
 
 	k = np.array([])
