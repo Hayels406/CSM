@@ -18,10 +18,10 @@ if topsy == False:
     rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
     rc('text', usetex=True)
 
-filesSquare = glob('Square/pred200/group*/output/beta')
+filesSquare = glob('Square/pred*/group*/output/beta')
 filesSquare.sort()
 
-filesCircular = glob('Circular/pred200/group*/output/beta')
+filesCircular = glob('Circular/pred*/group*/output/beta')
 filesCircular.sort()
 
 k = np.array([])

@@ -4,6 +4,7 @@ import sys
 import h5py
 import sys
 import os
+from scipy.stats import itemfreq
 if os.getcwd().rfind('share') > 0:
 	import matplotlib as mpl
 	mpl.use('Agg')
@@ -40,32 +41,20 @@ def init():
 	data['sheep'] = np.zeros((cachedTimesteps,NP, 2))
 	data['sheepVel'] = np.zeros((cachedTimesteps,NP,2))
 
-	data['dist_id'] = np.zeros((cachedTimesteps,NP))
-	data['dist_ij'] = dict()
-	data['dist_ij']['min'] = np.zeros(cachedTimesteps)
-	data['dist_ij']['max'] = np.zeros(cachedTimesteps)
-	data['dist_ij']['mean'] = np.zeros(cachedTimesteps)
-
 	data['t'] = np.zeros(cachedTimesteps)
 	data['dog_index_neighbours'] = []
 
-	if timeStepMethod == 'Adaptive':
-		data['q'] = []
-	elif timeStepMethod != 'Euler':
+	if timeStepMethod != 'Euler' and timeStepMethod != 'Adaptive':
 		sys.exit("Error: updateMethod not recognized!")
 
 	if wallType == 'Square' :
 		data['walls'] = makeSquareWalls(wallTop,wallBottom,wallLeft,wallRight)
-		data['dist_iw'] = np.zeros((cachedTimesteps,NP,4))
 		data['forceWalls'] = np.zeros((cachedTimesteps,NP,2))
 		data['forceWallsDog'] = np.zeros((cachedTimesteps,2))
-		data['dist_dw'] = np.zeros((cachedTimesteps,4))
 	elif wallType == 'Circular':
 		data['walls'] = [wallTop]
-		data['dist_iw'] = np.zeros((cachedTimesteps,NP))
 		data['forceWalls'] = np.zeros((cachedTimesteps,NP,2))
 		data['forceWallsDog'] = np.zeros((cachedTimesteps,2))
-		data['dist_dw'] = np.zeros((cachedTimesteps))
 	else:
 		data['walls'] = []
 
@@ -78,12 +67,9 @@ def init():
 		data['bterm'] = np.zeros((cachedTimesteps,NP,2))
 		data['aterm'] = np.zeros((cachedTimesteps,NP,2))
 	elif updateMethod == 'Acceleration':
-		data['sheepAccFlocking'] = np.zeros((cachedTimesteps,NP,2))
 		data['sheepAccFlight'] = np.zeros((cachedTimesteps,NP,2))
 		data['sheepAcc'] = np.zeros((cachedTimesteps,NP,2))
 		data['dogAcc'] = np.zeros((cachedTimesteps,2))
-		data['Gfunc'] = np.zeros((cachedTimesteps,NP,2))
-		data['Hfunc'] = np.zeros((cachedTimesteps,NP,2))
 	else:
 		sys.exit("Error: updateMethod not recognized!")
 	if segments == 'On':
@@ -129,7 +115,6 @@ def doVelocityStep(data):
 	frac = distDogSheep*np.transpose(np.tile((np.linalg.norm(distDogSheep,axis=1))**(-p),(2,1)))
 	data['dogVel'][itime] = (c/NP)*frac.sum(axis=0)
 
-	data['dist_id'][itime] = cdist(data['sheep'][itime], data['dog'][itime].reshape(1,2)).reshape(NP)
 	if timeStepMethod == 'Euler':
 		data['dog'][itime + 1] = data['dog'][itime] + data['dogVel'][itime]*dt
 		data['sheep'][itime + 1] = data['sheep'][itime] + data['sheepVel'][itime]*dt
@@ -153,16 +138,16 @@ def doVelocityStep(data):
 			data['sheep'][itime + 1] = data['sheep'][itime] + (dt/24.)*(9.*sheepVelTemp + 19.*data['sheepVel'][itime] - 5.*data['sheepVel'][itime - 1] + data['sheepVel'][itime - 2])
 			data['dog'][itime + 1] = data['dog'][itime] + data['dogVel'][itime]*dt
 			q_f = np.min(((270./19.)*((epsilon*dt)/(np.abs(data['sheep'][itime + 1] - sheepTemp))))**(0.25))
-			data['q'].append(np.floor(100.*q_f)/100.)
+			q = np.floor(100.*q_f)/100.
 			data['t'][itime+1] = data['t'][itime] + dt
 		else:
-			sheepTemp = data['sheep'][itime] + data['q'][-1]*(dt/24.)*(55.*data['sheepVel'][itime] - 59.*data['sheepVel'][itime - 1] + 37.*data['sheepVel'][itime - 2] - 9.*data['sheepVel'][itime - 3])
-			sheepVelTemp = (sheepTemp - data['sheep'][itime])/(dt*data['q'][-1])
-			data['sheep'][itime + 1] = data['sheep'][itime] + data['q'][-1]*(dt/24.)*(9.*sheepVelTemp + 19.*data['sheepVel'][itime] - 5.*data['sheepVel'][itime - 1] + data['sheepVel'][itime - 2])
-			data['dog'][itime + 1] = data['dog'][itime] + data['dogVel'][itime]*dt*data['q'][-1]
+			sheepTemp = data['sheep'][itime] + q*(dt/24.)*(55.*data['sheepVel'][itime] - 59.*data['sheepVel'][itime - 1] + 37.*data['sheepVel'][itime - 2] - 9.*data['sheepVel'][itime - 3])
+			sheepVelTemp = (sheepTemp - data['sheep'][itime])/(dt*q)
+			data['sheep'][itime + 1] = data['sheep'][itime] + q*(dt/24.)*(9.*sheepVelTemp + 19.*data['sheepVel'][itime] - 5.*data['sheepVel'][itime - 1] + data['sheepVel'][itime - 2])
+			data['dog'][itime + 1] = data['dog'][itime] + data['dogVel'][itime]*dt*q
 			q_f = np.min(((270./19.)*((epsilon*dt)/(np.abs(data['sheep'][itime + 1] - sheepTemp))))**(0.25))
-			data['t'][itime+1] = data['t'][itime] + dt*data['q'][-1]
-			data['q'].append(np.floor(100.*q_f)/100.)
+			data['t'][itime+1] = data['t'][itime] + dt*q
+			q = np.floor(100.*q_f)/100.
 
 	else:
 		sys.exit('Invalid time step method:'+timeStepMethod+' in doVelocityStep()')
@@ -170,7 +155,7 @@ def doVelocityStep(data):
 ###############
 #Acceleration
 ###############
-def doAccelerationStep(data):
+def doAccelerationStep(data, q=0):
 	#Prints the location of the prey furthest out
 	if emergencyCheck == 'On':
 		print 'furthest up', data['sheep'][itime,np.where(np.max(data['sheep'][itime][:,1]) == data['sheep'][itime][:,1]),:]
@@ -179,10 +164,10 @@ def doAccelerationStep(data):
 		print 'furthest left', data['sheep'][itime,np.where(np.min(data['sheep'][itime][:,0]) == data['sheep'][itime][:,0]),:]
 
 
-	data['dist_id'][itime] = cdist(data['sheep'][itime], data['dog'][itime].reshape(1,2)).reshape(NP)
+	dist_id = cdist(data['sheep'][itime], data['dog'][itime].reshape(1,2)).reshape(NP)
 	if predation == 'On':
-		if np.min(data['dist_id'][itime][data['alive'][itime]]) < predation_length_scale:
-			prey_too_close = np.where(data['dist_id'][itime] == np.min(data['dist_id'][itime][data['alive'][itime]]))[0][0]
+		if np.min(dist_id[data['alive'][itime]]) < predation_length_scale:
+			prey_too_close = np.where(dist_id == np.min(dist_id[data['alive'][itime]]))[0][0]
 
 			print 'predation of prey', prey_too_close, ': ', sum(data['alive'][itime])
 
@@ -212,12 +197,36 @@ def doAccelerationStep(data):
 		else:
 			normStuff = np.linalg.norm(distMatrix, axis = 2).reshape(sum(data['alive'][itime]), sum(data['alive'][itime]), 1) + sheepSize
 		if gaussian == 'On':
-			data['sheepAccFlocking'][itime][data['alive'][itime]] = (1./np.min([groupSize, sum(data['alive'][itime])]))*np.array(map(lambda j:((f*normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*np.exp(-normStuff[j,idx[j],:]**2/visualDist**2)*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(sum(data['alive'][itime])))).sum(axis = 1)
+			sheepAccFlocking = (1./np.min([groupSize, sum(data['alive'][itime])]))*np.array(map(lambda j:((f*normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*np.exp(-normStuff[j,idx[j],:]**2/visualDist**2)*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(sum(data['alive'][itime])))).sum(axis = 1)
 		else:
-			#data['sheepAccFlocking'][itime][data['alive'][itime]] = (0.01)*np.array(map(lambda j:((f*normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(sum(data['alive'][itime])))).sum(axis = 1)
-			data['sheepAccFlocking'][itime][data['alive'][itime]] = (1./np.min([groupSize, sum(data['alive'][itime])]))*np.array(map(lambda j:((f*normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(sum(data['alive'][itime])))).sum(axis = 1)
+			sheepAccFlocking = (1./np.min([groupSize, sum(data['alive'][itime])]))*np.array(map(lambda j:((f*normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(sum(data['alive'][itime])))).sum(axis = 1)
+
+	elif flocking == 'PPPoisson':
+		distributionN = groupSize + np.random.poisson(lam, NP) - np.random.poisson(lam, NP)
+		while any(distributionN < 0):
+			distributionN = groupSize + np.random.poisson(lam, NP) - np.random.poisson(lam, NP)
+		neighCalcTree = itemfreq(distributionN)[:,0]
+		neighCalcTree = [int(x) for x in neighCalcTree]
+
+		tree = KDTree(data['sheep'][itime][data['alive'][itime]])
+		idx = tree.query(data['sheep'][itime][data['alive'][itime]], np.min([np.max(neighCalcTree), sum(data['alive'][itime])]))[1][:,1:]
+		distMatrix = np.array(map(lambda j:data['sheep'][itime,j] - data['sheep'][itime][data['alive'][itime]],np.array(range(NP))[data['alive'][itime]]))
+
+		if predation == 'Off':
+			normStuff = np.linalg.norm(distMatrix, axis = 2).reshape(NP,NP,1) + sheepSize
+		else:
+			normStuff = np.linalg.norm(distMatrix, axis = 2).reshape(sum(data['alive'][itime]), sum(data['alive'][itime]), 1) + sheepSize
+
+		acc_temp = np.zeros(NP)
+		for neighbours in neighCalcTree:
+			if neighbours == 0:
+				acc_temp[distributionN == neighbours] = 0.0
+			else:
+				acc_temp[distributionN == neighbours] = (1./np.min([neighbours, sum(data['alive'][itime])]))*np.array(map(lambda j:((f*normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(sum(data['alive'][itime])))).sum(axis = 1)
+		sheepAccFlocking = acc_temp[data['alive'][itime]]
 
 	elif flocking == 'Vicsek':
+		sheepAccFlocking = np.zeros(([data['alive'][itime]].sum(), 2))
 		tree = KDTree(data['sheep'][itime][data['alive'][itime]])
 		idx = tree.query_radius(data['sheep'][itime], r)
 		for i in np.array(range(NP))[data['alive'][itime]]:
@@ -225,19 +234,20 @@ def doAccelerationStep(data):
 			if len(dumidx) >= 1: # Some neighbours
 				sheepAccTemp = (data['sheepVel'][itime][data['alive'][itime]][dumidx].mean(axis = 0) - data['sheepVel'][itime][i])
 				if itime < 4.:
-					data['sheepAccFlocking'][itime][i] = sheepAccTemp/dt
+					sheepAccFlocking[i] = sheepAccTemp/dt
 				else:
-					data['sheepAccFlocking'][itime][i] = sheepAccTemp/data['q'][-1]*dt
+					sheepAccFlocking[i] = sheepAccTemp/q*dt
 			else:  # No neighbours
-				data['sheepAccFlocking'][itime][i] = np.zeros(2)
+				sheepAccFlocking[i] = np.zeros(2)
+
 	elif flocking == 'Topo':
 		tree = KDTree(data['sheep'][itime][data['alive'][itime]])
 		idx = tree.query(data['sheep'][itime][data['alive'][itime]], np.min([n+1, sum(data['alive'][itime])]))[1][:,1:]
 		sheepAccTemp = (data['sheepVel'][itime][idx].mean(axis = 1) - data['sheepVel'][itime])
 		if itime < 4.:
-			data['sheepAccFlocking'][itime] = sheepAccTemp/dt
+			sheepAccFlocking = sheepAccTemp/dt
 		else:
-			data['sheepAccFlocking'][itime] = sheepAccTemp/data['q'][-1]*dt
+			sheepAccFlocking = sheepAccTemp/q*dt
 	else:
 		sys.exit('Invalid flocking mechanisim: ' + flocking + ' in doAccelerationStep')
 
@@ -247,18 +257,19 @@ def doAccelerationStep(data):
 		normStuff2 = np.linalg.norm(preyMinusPred,axis=1).reshape(NP,1)
 	else:
 		normStuff2 = np.linalg.norm(preyMinusPred, axis = 1).reshape(sum(data['alive'][itime]),1)
-	data['Gfunc'][itime][data['alive'][itime]] = b*normStuff2**(-1)
+
+	Gfunc = b*normStuff2**(-1)
 
 	if allSheepSeeDog == 'On':
-		data['sheepAccFlight'][itime][data['alive'][itime]] = data['Gfunc'][itime][data['alive'][itime]]*preyMinusPred*(normStuff2**(-1))
+		data['sheepAccFlight'][itime][data['alive'][itime]] = Gfunc*preyMinusPred*(normStuff2**(-1))
 	elif allSheepSeeDog == 'Off':
 		vor = Voronoi(np.concatenate((data['sheep'][itime][data['alive'][itime]], data['dog'][itime][None,:]), axis = 0))
 		data['dog_index_neighbours'] = np.array([t[1] for t in [(b1, a1) for a1, b1 in vor.ridge_dict.keys()] + vor.ridge_dict.keys() if t[0] == NP]) #Calculates the Voronoi neighbours of dog
-		data['sheepAccFlight'][itime][data['alive'][itime]][data['dog_index_neighbours']] = (data['Gfunc'][itime]*preyMinusPred*(normStuff2**(-1)))[data['dog_index_neighbours']]
+		data['sheepAccFlight'][itime][data['alive'][itime]][data['dog_index_neighbours']] = (Gfunc*preyMinusPred*(normStuff2**(-1)))[data['dog_index_neighbours']]
 	else:
 		sys.exit('Invalid allSheepSeeDog:'+allSheepSeeDog+' in doAccelerationStep()')
 
-	data['sheepAcc'][itime][data['alive'][itime]] = (data['sheepAccFlight'][itime][data['alive'][itime]] + data['sheepAccFlocking'][itime][data['alive'][itime]] - data['sheepVel'][itime][data['alive'][itime]])/sheepMass
+	data['sheepAcc'][itime][data['alive'][itime]] = (data['sheepAccFlight'][itime][data['alive'][itime]] + sheepAccFlocking - data['sheepVel'][itime][data['alive'][itime]])/sheepMass
 
 	if cap == 'On':
 		indices = np.where(np.sqrt((data['sheepAcc'][itime]**2).sum(axis = 1)) > accCap)
@@ -268,26 +279,16 @@ def doAccelerationStep(data):
 		for wall in range(len(data['walls']['eqn'])):
 			w = data['walls']['eqn'][wall]
 
-			data['dist_iw'][itime,:,wall][data['alive'][itime]] = (np.abs(w[0]*data['sheep'][itime,:,0] + w[1]*data['sheep'][itime,:,1] + w[2])/np.sqrt(w[0]**2 + w[1]**2))[data['alive'][itime]]
-
 			data['forceWalls'][itime][data['alive'][itime]] += (A*np.exp((np.dot(-data['walls']['n'][wall], data['sheep'][itime].T)-np.abs(w[2])+C)/B).reshape(NP,1)*data['walls']['n'][wall])[data['alive'][itime]]
 
 	elif wallType == 'Circular':
 		distance = np.linalg.norm(data['sheep'][itime][data['alive'][itime]], axis = 1)
 		unit = data['sheep'][itime][data['alive'][itime]]/distance.reshape(sum(data['alive'][itime]),1)
 
-		data['dist_iw'][itime,:][data['alive'][itime]] = np.squeeze(data['walls'][0] - distance)
-
 		data['forceWalls'][itime][data['alive'][itime]] = -A*unit*np.exp((distance-data['walls'][0]+C)/B ).reshape(sum(data['alive'][itime]),1)
 
-	if sheepSheepInteration == 'On':
-		for i in range(NP):
-			data['forceSheep'][itime][i,:] =  np.nansum(np.fromfunction(lambda j,k: A*np.exp((sheepSize*2 - dist_ij[i,j])/B)*(data['sheep'][itime][i,k] - data['sheep'][itime][j,k])/dist_ij[i,j],(NP,2),dtype=int),axis=0)
 
-	if sheepSheepInteration == 'On':
-		data['sheepAcc'][itime] = data['sheepAcc'][itime]  + data['forceWalls'][itime] + data['forceSheep'][itime]
-	else:
-		data['sheepAcc'][itime][data['alive'][itime]] = data['sheepAcc'][itime][data['alive'][itime]] + data['forceWalls'][itime][data['alive'][itime]]
+	data['sheepAcc'][itime][data['alive'][itime]] = data['sheepAcc'][itime][data['alive'][itime]] + data['forceWalls'][itime][data['alive'][itime]]
 
 #################################################################
 	#Acceleration of dog
@@ -312,9 +313,10 @@ def doAccelerationStep(data):
 	preyMinusPred = sheep - data['dog'][itime]
 
 	normStuff3 = np.linalg.norm(preyMinusPred,axis=1).reshape(numberInteractingSheep,1)
-	data['Hfunc'][itime][0:numberInteractingSheep] = 1./(normStuff3**p + 0.1)
-	data['Hfunc'][itime][numberInteractingSheep:] = np.nan
-	data['dogAcc'][itime] = (-data['dogVel'][itime] + c/numberInteractingSheep*(preyMinusPred*(normStuff3**(-1))*data['Hfunc'][itime][:numberInteractingSheep]).sum(axis=0))/dogMass
+	Hfunc = np.zeros((NP, 2))
+	Hfunc[0:numberInteractingSheep] = 1./(normStuff3**p + 0.1)
+	Hfunc[numberInteractingSheep:] = np.nan
+	data['dogAcc'][itime] = (-data['dogVel'][itime] + c/numberInteractingSheep*(preyMinusPred*(normStuff3**(-1))*Hfunc[:numberInteractingSheep]).sum(axis=0))/dogMass
 
 
 	if normDog == 'On':
@@ -324,8 +326,6 @@ def doAccelerationStep(data):
 		for wall in range(len(data['walls']['eqn'])):
 			w = data['walls']['eqn'][wall]
 
-			data['dist_dw'][itime,wall] = (np.abs(w[0]*data['dog'][itime,0] + w[1]*data['dog'][itime,1] + w[2])/np.sqrt(w[0]**2 + w[1]**2))
-
 			data['forceWallsDog'][itime] += (A*np.exp((np.dot(-data['walls']['n'][wall], data['dog'][itime].T)-np.abs(w[2])+C)/B)*data['walls']['n'][wall])
 
 	elif wallType == 'Circular':
@@ -334,17 +334,12 @@ def doAccelerationStep(data):
 			distance = 0.01
 		unit = data['dog'][itime]/distance
 
-		data['dist_dw'][itime] = np.squeeze(data['walls'][0] - distance)
-
 		data['forceWallsDog'][itime] = -A*unit*np.exp((distance-data['walls'][0]+C)/B )
 
 
 	data['dogAcc'][itime] = data['dogAcc'][itime] + data['forceWallsDog'][itime]
 
-	dist_ij = cdist(data['sheep'][itime][data['alive'][itime]], data['sheep'][itime][data['alive'][itime]])
-	data['dist_ij']['max'][itime] = np.max(dist_ij)
-	data['dist_ij']['min'][itime] = np.min(dist_ij[dist_ij>0])
-	data['dist_ij']['mean'][itime] = np.mean(dist_ij)
+
 
 
 ##############################################################################
@@ -355,6 +350,7 @@ def doAccelerationStep(data):
 		data['dog'][itime + 1] = data['dog'][itime] + data['dogVel'][itime]*dt
 		data['sheep'][itime + 1] = data['sheep'][itime] + data['sheepVel'][itime]*dt
 		data['t'][itime+1] = data['t'][itime] + dt
+		return 0
 
 	elif timeStepMethod == 'Adaptive':
 		#Adaptive time step
@@ -364,18 +360,21 @@ def doAccelerationStep(data):
 			data['sheep'][itime + 1] = data['sheep'][itime] + data['sheepVel'][itime]*dt
 			data['dog'][itime + 1] = data['dog'][itime] + data['dogVel'][itime]*dt
 			data['t'][itime+1] = data['t'][itime] + dt
+			return 0
 		elif itime == 1:
 			data['sheepVel'][itime + 1] = data['sheepVel'][itime] + 1.5*dt*data['sheepAcc'][itime] - 0.5*dt*data['sheepAcc'][itime - 1]
 			data['dogVel'][itime + 1] = data['dogVel'][itime] + 1.5*dt*data['dogAcc'][itime] - 0.5*dt*data['dogAcc'][itime - 1]
 			data['sheep'][itime + 1] = data['sheep'][itime] + data['sheepVel'][itime]*dt
 			data['dog'][itime + 1] = data['dog'][itime] + data['dogVel'][itime]*dt
 			data['t'][itime+1] = data['t'][itime] + dt
+			return 0
 		elif itime == 2:
 			data['sheepVel'][itime + 1] = data['sheepVel'][itime] + dt*((23./12.)*data['sheepAcc'][itime] - (4./3.)*data['sheepAcc'][itime - 1] + (5./12.)*data['sheepAcc'][itime - 2])
 			data['dogVel'][itime + 1] = data['dogVel'][itime] + dt*((23./12.)*data['dogAcc'][itime] - (4./3.)*data['dogAcc'][itime - 1] + (5./12.)*data['dogAcc'][itime - 2])
 			data['sheep'][itime + 1] = data['sheep'][itime] + data['sheepVel'][itime]*dt
 			data['dog'][itime + 1] = data['dog'][itime] + data['dogVel'][itime]*dt
 			data['t'][itime+1] = data['t'][itime] + dt
+			return 0
 		elif itime == 3:
 			sheepVelTemp = data['sheepVel'][itime] + (dt/24.)*(55.*data['sheepAcc'][itime] - 59.*data['sheepAcc'][itime - 1] + 37.*data['sheepAcc'][itime - 2] - 9.*data['sheepAcc'][itime - 3])
 			sheepAccTemp = (sheepVelTemp - data['sheepVel'][itime])/dt
@@ -392,26 +391,28 @@ def doAccelerationStep(data):
 
 			min_q = np.min([q_d, q_f])
 
-			data['q'].append(np.floor(100.*min_q)/100.)
+			q = np.floor(100.*min_q)/100.
+			return q
 			data['t'][itime+1] = data['t'][itime] + dt
 		else:
-			sheepVelTemp = data['sheepVel'][itime] + data['q'][-1]*(dt/24.)*(55.*data['sheepAcc'][itime] - 59.*data['sheepAcc'][itime - 1] + 37.*data['sheepAcc'][itime - 2] - 9.*data['sheepAcc'][itime - 3])
-			sheepAccTemp = (sheepVelTemp - data['sheepVel'][itime])/(dt*data['q'][-1])
-			data['sheepVel'][itime + 1] = data['sheepVel'][itime] + data['q'][-1]*(dt/24.)*(9.*sheepAccTemp + 19.*data['sheepAcc'][itime] - 5.*data['sheepAcc'][itime - 1] + data['sheepAcc'][itime - 2])
-			data['sheep'][itime + 1] = data['sheep'][itime] + data['sheepVel'][itime]*dt*data['q'][-1]
+			sheepVelTemp = data['sheepVel'][itime] + q*(dt/24.)*(55.*data['sheepAcc'][itime] - 59.*data['sheepAcc'][itime - 1] + 37.*data['sheepAcc'][itime - 2] - 9.*data['sheepAcc'][itime - 3])
+			sheepAccTemp = (sheepVelTemp - data['sheepVel'][itime])/(dt*q)
+			data['sheepVel'][itime + 1] = data['sheepVel'][itime] + q*(dt/24.)*(9.*sheepAccTemp + 19.*data['sheepAcc'][itime] - 5.*data['sheepAcc'][itime - 1] + data['sheepAcc'][itime - 2])
+			data['sheep'][itime + 1] = data['sheep'][itime] + data['sheepVel'][itime]*dt*q
 
-			dogVelTemp = data['dogVel'][itime] + data['q'][-1]*(dt/24.)*(55.*data['dogAcc'][itime] - 59.*data['dogAcc'][itime - 1] + 37.*data['dogAcc'][itime - 2] - 9.*data['dogAcc'][itime - 3])
-			dogAccTemp = (dogVelTemp - data['dogVel'][itime])/(dt*data['q'][-1])
-			data['dogVel'][itime + 1] = data['dogVel'][itime] + data['q'][-1]*(dt/24.)*(9.*dogAccTemp + 19.*data['dogAcc'][itime] - 5.*data['dogAcc'][itime - 1] + data['dogAcc'][itime - 2])
-			data['dog'][itime + 1] = data['dog'][itime] + data['dogVel'][itime]*dt*data['q'][-1]
+			dogVelTemp = data['dogVel'][itime] + q*(dt/24.)*(55.*data['dogAcc'][itime] - 59.*data['dogAcc'][itime - 1] + 37.*data['dogAcc'][itime - 2] - 9.*data['dogAcc'][itime - 3])
+			dogAccTemp = (dogVelTemp - data['dogVel'][itime])/(dt*q)
+			data['dogVel'][itime + 1] = data['dogVel'][itime] + q*(dt/24.)*(9.*dogAccTemp + 19.*data['dogAcc'][itime] - 5.*data['dogAcc'][itime - 1] + data['dogAcc'][itime - 2])
+			data['dog'][itime + 1] = data['dog'][itime] + data['dogVel'][itime]*dt*q
 
 			q_f = np.min(((270./19.)*((epsilon*dt)/(np.abs(data['sheepVel'][itime + 1] - sheepVelTemp))))**(0.25))
 			q_d = np.min(((270./19.)*((epsilon*dt)/(np.abs(data['dogVel'][itime + 1] - dogVelTemp))))**(0.25))
 
 			min_q = np.min([q_d, q_f])
 
-			data['t'][itime+1] = data['t'][itime] + dt*data['q'][-1]
-			data['q'].append(np.floor(100.*min_q)/100.)
+			data['t'][itime+1] = data['t'][itime] + dt*q
+			q = np.floor(100.*min_q)/100.
+			return q
 	else:
 		sys.exit('Invalid time step method:'+timeStepMethod+' in doAccelerationStep()')
 	if dogCentrePrey == 'On':
@@ -487,21 +488,21 @@ def plotDataPositions(data, tstep, dQuiv, sQuiv, savePlotPng):
 	else:
 		plt.pause(0.005)
 
-def saveData(data):
-	h5f = h5py.File('data-%05d-'%int(data['t'][itime])+str(e)+'.h5', 'w')
-	h5f.create_dataset('itime', data = [itime])
+def saveData(data, ens, step):
+	h5f = h5py.File('data-%05d-'%int(data['t'][step])+str(ens)+'.h5', 'w')
+	h5f.create_dataset('itime', data = [step])
 	for k in data.keys():
 		if type(data[k]) is dict:
 			for k2 in data[k].keys():
 				try:
-					h5f.create_dataset(k+'-'+k2, data=data[k][k2][0:itime+1],compression="gzip")
+					h5f.create_dataset(k+'-'+k2, data=data[k][k2][0:step+1],compression="gzip")
 				except:
-					h5f.create_dataset(k+'-'+k2, data=data[k][k2][0:itime+1])
+					h5f.create_dataset(k+'-'+k2, data=data[k][k2][0:step+1])
 		else:
 			try:
-				h5f.create_dataset(k, data=data[k][0:itime+1],compression="gzip")
+				h5f.create_dataset(k, data=data[k][0:step+1],compression="gzip")
 			except:
-				h5f.create_dataset(k, data=data[k][0:itime+1])
+				h5f.create_dataset(k, data=data[k][0:step+1])
 	h5f.close()
 
 def loadData(data,fn):
@@ -512,25 +513,17 @@ def loadData(data,fn):
 	data['sheepVel'][0:itime+1] = np.copy(h5f['sheepVel'])
 	data['dogVel'][0:itime+1] = np.copy(h5f['dogVel'])
 
-	data['dist_id'][0:itime+1] = np.copy(h5f['dist_id'])
-	data['dist_ij']['min'][0:itime+1] = np.copy(h5f['dist_ij-min'])
-	data['dist_ij']['max'][0:itime+1] = np.copy(h5f['dist_ij-max'])
-	data['dist_ij']['mean'][0:itime+1] = np.copy(h5f['dist_ij-mean'])
 
 	data['t'][0:itime+1] = np.copy(h5f['t'])
 	data['alive'][0:itime+1] = np.copy(h5f['alive'])
 
-	if timeStepMethod == 'Adaptive':
-		data['q'] = np.copy(h5f['q']).tolist()
-	elif timeStepMethod != 'Euler':
+	if timeStepMethod != 'Euler' and timeStepMethod != 'Adaptive':
 		sys.exit("Error: updateMethod not recognized!")
 
 	if wallType == 'Square' :
 		data['walls']['eqn'] = np.copy(h5f['walls-eqn'])
 		data['walls']['n'] = np.copy(h5f['walls-n'])
-		data['dist_iw'][0:itime+1] = np.copy(h5f['dist_iw'])
 		data['forceWalls'][0:itime+1] = np.copy(h5f['forceWalls'])
-		data['dist_dw'][0:itime+1] = np.copy(h5f['dist_dw'])
 	if wallType == 'Circular':
 		data['walls'] = np.copy(h5f['walls']).tolist()
 	else:
@@ -540,12 +533,9 @@ def loadData(data,fn):
 		data['bterm'][0:itime+1] = np.copy(h5f['bterm'])
 		data['aterm'][0:itime+1] = np.copy(h5f['aterm'])
 	elif updateMethod == 'Acceleration':
-		data['sheepAccFlocking'][0:itime+1] = np.copy(h5f['sheepAccFlocking'])
 		data['sheepAccFlight'][0:itime+1] = np.copy(h5f['sheepAccFlight'])
 		data['sheepAcc'][0:itime+1] = np.copy(h5f['sheepAcc'])
 		data['dogAcc'][0:itime+1] = np.copy(h5f['dogAcc'])
-		data['Gfunc'][0:itime+1] = np.copy(h5f['Gfunc'])
-		data['Hfunc'][0:itime+1] = np.copy(h5f['Hfunc'])
 	else:
 		sys.exit("Error: updateMethod not recognized!")
 
@@ -556,9 +546,7 @@ def loadData(data,fn):
 def wipeData(data):
 	for k in data.keys():
 		if k != 'walls':
-			if k=='q':
-				data['q'] = [data['q'][-1]]
-			elif k == 'dog_index_neighbours':
+			if k == 'dog_index_neighbours':
 				data['dog_index_neighbours'] = []
 			elif type(data[k]) is dict:
 				for k2 in data[k].keys():
@@ -581,6 +569,7 @@ if __name__ == "__main__":
 	itime = 0
 	initCond(data)
 	e = sys.argv[1]
+	q = 0
 	if predOff == True:
 		b = 0
 	if loadFromFile == 'On':
@@ -606,7 +595,7 @@ if __name__ == "__main__":
 		if saveDataH5 == 'On':
 			if data['t'][itime]-lastSnapshot > snapshotPeriod:
 				print "Saving at "+str(data['t'][itime])
-				saveData(data)
+				saveData(data, e, itime)
 				lastSnapshot = data['t'][itime]
 				print "Wiping old data"
 				wipeData(data)
@@ -615,7 +604,7 @@ if __name__ == "__main__":
 		if updateMethod == 'Velocity':
 			doVelocityStep(data)
 		elif updateMethod == 'Acceleration':
-			doAccelerationStep(data)
+			q = doAccelerationStep(data, q)
 		else:
 			sys.exit('Invalid updateMethod: ' + updateMethod)
 

@@ -18,10 +18,10 @@ if topsy == False:
     rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
     rc('text', usetex=True)
 
-filesSquare = glob('Square/pred200/group*/output/alpha')
+filesSquare = glob('Square/pred*/group*/output/alpha')
 filesSquare.sort()
 
-filesCircular = glob('Circular/pred200/group*/output/alpha')
+filesCircular = glob('Circular/pred*/group*/output/alpha')
 filesCircular.sort()
 
 k = np.array([])
@@ -60,6 +60,8 @@ for i in range(len(set(k))):
 	plt.savefig('./Square/pred'+str(kValue).zfill(3)+'/alpha.png')
 	plt.close()
 
+
+print 'Circular'
 
 k = np.array([])
 Ni = np.array([])
