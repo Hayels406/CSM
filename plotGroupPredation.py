@@ -65,4 +65,4 @@ for group in sorted(glob('group*')):
 
 	plt.plot(data2[:,0][100:-50], y_av[100:-50], label = group, color = colors[j])
 	j +=1
-plt.safefig('./plots/groupPredation')
+plt.savefig('./plots/groupPredation')
