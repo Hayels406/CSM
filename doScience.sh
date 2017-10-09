@@ -20,11 +20,11 @@ for wall in Square Circular; do
 		cd $pred
 		for ni in group*; do
 			cd $ni
-			#echo $(pwd)
-			#qsub $HERE/statsJob.qsub
+			echo $(pwd)
+			qsub $HERE/statsJob.qsub
 			cd ..
 		done
-		qsub $HERE/statsJob.qsub
+		#qsub $HERE/statsJob.qsub
 		cd ..
 	done
 	cd $HERE
