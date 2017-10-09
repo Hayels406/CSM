@@ -70,4 +70,7 @@ for group in sorted(glob('group*0*')):
 
 	plt.plot(data2[:,0][100:-50], y_av[100:-50], label = group, color = colors[j])
 	j +=1
-#plt.savefig('./groupPredation')
+plt.colorbar(CS3)
+plt.xlabel('Time', fontsize = 18)
+plt.ylabel('$N(t)$', fontsize = 18)
+plt.savefig('./groupPredation')

@@ -25,7 +25,7 @@ for wall in Square Circular; do
 			cd ..
 		done
 		echo $(pwd)
-		qsub $HERE/statsJob.qsub
+		python -b /Users/hayleymoore/Documents/Uni/Documents/CSM/plotGroupPredation.py
 		cd ..
 	done
 	cd $HERE
