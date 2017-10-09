@@ -25,7 +25,7 @@ for wall in Square Circular; do
 			cd ..
 		done
 		echo $(pwd)
-		python -b /Users/hayleymoore/Documents/Uni/Documents/CSM/plotGroupPredation.py
+		python -b $DIR/plotGroupPredation.py
 		cd ..
 	done
 	cd $HERE
