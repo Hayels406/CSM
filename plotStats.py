@@ -19,6 +19,7 @@ if topsy == False:
     rc('text', usetex=True)
 
 for stat in ['predAcc', 'predVel', 'preyAcc', 'preyVel']:
+	print stat
 	filesSquare = glob('Square/pred*/group*/output/' + stat)
 	filesSquare.sort()
 
@@ -93,7 +94,7 @@ for stat in ['predAcc', 'predVel', 'preyAcc', 'preyVel']:
 	ax = plt.gca()
 	ax.set_xticks(np.array(range(len(list(set(k))))) + 0.5)
 	ax.set_xticklabels(sorted(list(set(k))))
-	ax.set_yticks(np.array(range(len(list(set(Ni))))) + 0.5)
+	ax.set_yticks((np.array(range(len(list(set(Ni))))) + 0.5)[0::10])
 	ax.set_yticklabels(sorted(list(set(Ni))))
 	plt.savefig('./Circular/pcolor' + stat + '.png')
 	plt.close()
@@ -112,3 +113,4 @@ for stat in ['predAcc', 'predVel', 'preyAcc', 'preyVel']:
 			plt.ylabel(r'$\langle v \rangle$', fontsize = 18)
 		plt.title(r'$k = '+str(kValue)+'$', fontsize = 20)
 		plt.savefig('./Circular/pred'+str(kValue).zfill(3)+'/' + stat + '.png')
+		plt.close()

@@ -173,7 +173,7 @@ def doAccelerationStep(data, q=0):
 
 			data['alive'][itime:,prey_too_close] = False
 
-	if (noise == 'On')*(itime > 4):
+	if (noise == 'Uniform')*(itime > 4):
 		dogTheta = np.arctan2(data['dogVel'][itime,1], data['dogVel'][itime,0])
 		sheepTheta = np.arctan2(data['sheepVel'][itime,:,1][data['alive'][itime]], data['sheepVel'][itime,:,0][data['alive'][itime]])
 
@@ -185,6 +185,21 @@ def doAccelerationStep(data, q=0):
 
 		data['dogVel'][itime] = dogVel*np.array([np.cos(dogTheta), np.sin(dogTheta)])
 		data['sheepVel'][itime][data['alive'][itime]] = sheepVel.reshape(sum(data['alive'][itime]), 1)*np.transpose(np.array([np.cos(sheepTheta), np.sin(sheepTheta)]))
+
+	elif (noise == 'Normal')*(itime > 4):
+		dogTheta = np.arctan2(data['dogVel'][itime,1], data['dogVel'][itime,0])
+		sheepTheta = np.arctan2(data['sheepVel'][itime,:,1][data['alive'][itime]], data['sheepVel'][itime,:,0][data['alive'][itime]])
+
+		dogVel = np.sqrt((data['dogVel'][itime]**2).sum())
+		sheepVel = np.sqrt((data['sheepVel'][itime][data['alive'][itime]]**2).sum(axis = 1))
+
+		dogTheta = dogTheta + np.random.normal(0, sigma)
+		sheepTheta = sheepTheta + np.random.normal(0, sigma, sum(data['alive'][itime]))
+
+		data['dogVel'][itime] = dogVel*np.array([np.cos(dogTheta), np.sin(dogTheta)])
+		data['sheepVel'][itime][data['alive'][itime]] = sheepVel.reshape(sum(data['alive'][itime]), 1)*np.transpose(np.array([np.cos(sheepTheta), np.sin(sheepTheta)]))
+	elif noise != 'Off':
+		sys.exit('Invalid Noise')
 
 	#Acceleration of sheep
 	#Flocking
@@ -568,7 +583,10 @@ if __name__ == "__main__":
 	data = init()
 	itime = 0
 	initCond(data)
-	e = sys.argv[1]
+	if len(sys.argv) > 1:
+		e = sys.argv[1]
+	else:
+		e = 1
 	q = 0
 	if predOff == True:
 		b = 0
