@@ -19,7 +19,7 @@ from glob import glob
 pwd = os.getcwd()
 k = int(pwd[pwd.rfind('pred')+4:])
 
-number_of_lines = len(glob('group*'))
+number_of_lines = len(glob('group*0*'))
 cm_subsection = np.linspace(0., 1., number_of_lines)
 colors = [ cm.magma(x) for x in cm_subsection]
 
