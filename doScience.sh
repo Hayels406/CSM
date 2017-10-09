@@ -18,7 +18,7 @@ for wall in Square Circular; do
 	cd $wall
 	for pred in pred*; do
 		cd $pred
-		for ni in group*; do
+		for ni in group*0*; do
 			cd $ni
 			echo $(pwd)
 			#qsub $HERE/statsJob.qsub
