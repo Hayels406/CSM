@@ -23,12 +23,17 @@ number_of_lines = len(glob('group*'))
 cm_subsection = np.linspace(0., 1., number_of_lines)
 colors = [ cm.magma(x) for x in cm_subsection]
 
+Z = [[0,0],[0,0]]
+levels = range(5,500+5,5)
+CS3 = plt.contourf(Z, levels, cmap='magma')
+plt.clf()
+
 def movingaverage(interval, window_size):
     window= np.ones(int(window_size))/float(window_size)
     return np.convolve(interval, window, 'same')
 
 j = 0
-for group in sorted(glob('group*')):
+for group in sorted(glob('group*0*')):
 	files = glob(group + '/data*.h5')
 
 	alive = []
@@ -65,4 +70,4 @@ for group in sorted(glob('group*')):
 
 	plt.plot(data2[:,0][100:-50], y_av[100:-50], label = group, color = colors[j])
 	j +=1
-plt.savefig('./groupPredation')
+#plt.savefig('./groupPredation')
