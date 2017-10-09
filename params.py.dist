@@ -39,10 +39,12 @@ dogNeareastNeigh = 'Off'
 dogCentrePrey = 'Off'
 
 wallType = 'Square'
-wallLeft = -1.25
-wallRight = 1.25
-wallBottom = -1.25
-wallTop = 1.25
+wallSize = 1.25
+
+wallLeft = -wallSize
+wallRight = wallSize
+wallBottom = -wallSize
+wallTop = wallSize
 
 snapshotPeriod = TF #units of time
 plotPeriod = 0.1 #units of time
