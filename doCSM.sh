@@ -39,8 +39,6 @@ if [ "$1" = "1" ]; then
 	python $DIR/plotSheepVelocity.py
 	python $DIR/plotDogAcceleration.py
 	python $DIR/plotDogVelocity.py
-	python $DIR/plotTimeStep.py
-	python $DIR/plotPredation.py
 
 	if [ -f $MAC/params.py.dist ]; then
 	  terminal-notifier -title "CSM" -message "Done with simulation" -subtitle ${vid} -sound 'glass'
