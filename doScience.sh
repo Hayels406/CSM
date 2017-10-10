@@ -14,7 +14,7 @@ if [ -f $INSTALLDIR_HOME/params.py.dist ]; then
 fi
 
 HERE=$(pwd)
-for wall in Square*r; do
+for wall in Square*; do
 	cd $wall
 	for pred in pred*; do
 		cd $pred
