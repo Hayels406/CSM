@@ -226,6 +226,7 @@ def doAccelerationStep(data, q=0):
 		tree = KDTree(data['sheep'][itime][data['alive'][itime]])
 		idx = tree.query(data['sheep'][itime][data['alive'][itime]], np.min([np.max(neighCalcTree), sum(data['alive'][itime])]))[1][:,1:]
 		distMatrix = np.array(map(lambda j:data['sheep'][itime,j] - data['sheep'][itime][data['alive'][itime]],np.array(range(NP))[data['alive'][itime]]))
+		print idx
 
 		if predation == 'Off':
 			normStuff = np.linalg.norm(distMatrix, axis = 2).reshape(NP,NP,1) + sheepSize
@@ -237,7 +238,7 @@ def doAccelerationStep(data, q=0):
 			if neighbours == 0:
 				acc_temp[distributionN == neighbours] = 0.0
 			else:
-				acc_temp[distributionN == neighbours] = (1./np.min([neighbours, sum(data['alive'][itime])]))*np.array(map(lambda j:((f*normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(sum(data['alive'][itime])))).sum(axis = 1)
+				acc_temp[distributionN == neighbours] = (1./np.min([neighbours, sum(data['alive'][itime])]))*np.array(map(lambda j:((f*normStuff[j,idx[j][:neighbours],:]**(-1) - a*normStuff[j,idx[j][:neighbours],:] )*distMatrix[j,idx[j][:neighbours],:]*(normStuff[j,idx[j][:neighbours],:]**(-1))), range(sum(data['alive'][itime])))).sum(axis = 1)
 		sheepAccFlocking = acc_temp[data['alive'][itime]]
 
 	elif flocking == 'Vicsek':
@@ -630,4 +631,4 @@ if __name__ == "__main__":
 
 	if saveDataH5 == 'On':
 		print "Saving at "+str(data['t'][itime])
-		saveData(data)
+		saveData(data, e, itime)
