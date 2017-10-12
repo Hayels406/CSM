@@ -21,11 +21,14 @@ for wall in Square*; do
 		for ni in group*0*; do
 			cd $ni
 			echo $(pwd)
-			qsub $HERE/statsJob.qsub
+			python -b $DIR/getStatistics.py
+			python -b $DIR/getAlphaBeta.py
 			cd ..
 		done
-		#echo $(pwd)
-		#python -b $DIR/plotGroupPredation.py
+		python -b $DIR/plotStats.py
+		python -b $DIR/plotAlpha.py
+		python -b $DIR/plotBeta.py
+		python -b $DIR/plotGroupPredation.py
 		cd ..
 	done
 	cd $HERE

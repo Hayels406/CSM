@@ -65,10 +65,10 @@ for group in sorted(glob('group*0*')):
 	data2 = sorted(data, key=lambda x : x[0])
 	data2 = np.array(data2)
 
-	y_av = movingaverage(data2[:,1], 75)
-
-
-	plt.plot(data2[:,0][100:-50], y_av[100:-50], label = group, color = colors[j])
+	if np.shape(data2)[0] > 0:
+		y_av = movingaverage(data2[:,1], 75)
+		plt.plot(data2[:,0][100:-50], y_av[100:-50], label = group, color = colors[j])
+	
 	j +=1
 plt.colorbar(CS3)
 plt.xlabel('Time', fontsize = 18)
