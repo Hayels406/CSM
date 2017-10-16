@@ -14,7 +14,49 @@ if [ -f $INSTALLDIR_HOME/params.py.dist ]; then
 fi
 
 HERE=$(pwd)
-for wall in Square* Circular*; do
+if [-f $HERE/Circular ]; do
+	for wall in Square* Circular; do
+		cd $wall
+		if [ -f $wall/noise1.0 ]; then
+			for noise in noise*; do
+				cd $noise
+				for pred in pred*; do
+					cd $pred
+					for ni in group[0-9]*; do
+						cd $ni
+						echo $(pwd)
+						#python -b $DIR/getStatistics.py
+						#python -b $DIR/getAlphaBeta.py
+						cd ..
+					done
+					#python -b $DIR/plotStats.py
+					#python -b $DIR/plotAlpha.py
+					#python -b $DIR/plotBeta.py
+					#python -b $DIR/plotGroupPredation.py
+					cd ..
+				done
+				cd ..
+			done
+		fi
+		for pred in pred*; do
+			cd $pred
+			for ni in group[0-9]*; do
+				cd $ni
+				echo $(pwd)
+				#python -b $DIR/getStatistics.py
+				#python -b $DIR/getAlphaBeta.py
+				cd ..
+			done
+			#python -b $DIR/plotStats.py
+			#python -b $DIR/plotAlpha.py
+			#python -b $DIR/plotBeta.py
+			#python -b $DIR/plotGroupPredation.py
+			cd ..
+		done
+		cd $HERE
+	done
+fi
+for wall in Square* ; do
 	cd $wall
 	if [ -f $wall/noise1.0 ]; then
 		for noise in noise*; do
