@@ -14,7 +14,7 @@ if [ -f $INSTALLDIR_HOME/params.py.dist ]; then
 fi
 
 HERE=$(pwd)
-if [ -f $HERE/Circular ]; then
+if [ -d $HERE/Circular ]; then
 	for wall in Circular; do
 		cd $wall
 		if [ -f $wall/noise1.0 ]; then
@@ -61,7 +61,7 @@ fi
 for wall in Square* ; do
 	cd $wall
 	echo $(pwd)
-	if [ -f noise1.0 ]; then
+	if [ -d noise1.0 ]; then
 		echo $(pwd)
 		for noise in noise*; do
 			cd $noise
