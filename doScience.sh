@@ -70,12 +70,12 @@ for wall in Square* ; do
 					python -b $DIR/getAlphaBeta.py
 					cd ..
 				done
-				python -b $DIR/plotStats.py
-				python -b $DIR/plotAlpha.py
-				python -b $DIR/plotBeta.py
 				python -b $DIR/plotGroupPredation.py
 				cd ..
 			done
+			python -b $DIR/plotStats.py
+			python -b $DIR/plotAlpha.py
+			python -b $DIR/plotBeta.py
 			cd ..
 		done
 	fi
@@ -88,11 +88,11 @@ for wall in Square* ; do
 			python -b $DIR/getAlphaBeta.py
 			cd ..
 		done
-		python -b $DIR/plotStats.py
-		python -b $DIR/plotAlpha.py
-		python -b $DIR/plotBeta.py
 		python -b $DIR/plotGroupPredation.py
 		cd ..
 	done
+	python -b $DIR/plotStats.py
+	python -b $DIR/plotAlpha.py
+	python -b $DIR/plotBeta.py
 	cd $HERE
 done
