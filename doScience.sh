@@ -77,9 +77,10 @@ for wall in Square* ; do
 				python -b $DIR/plotGroupPredation.py
 				cd ..
 			done
-			python -b $DIR/plotStats.py
-			python -b $DIR/plotAlpha.py
-			python -b $DIR/plotBeta.py
+			if [ -f $noise/$pred/$ni/output/beta]; then
+				python -b $DIR/plotStats.py
+				python -b $DIR/plotAlpha.py
+				python -b $DIR/plotBeta.py
 			cd ..
 		done
 	else
@@ -88,8 +89,10 @@ for wall in Square* ; do
 		for ni in group[0-9]*; do
 			cd $ni
 			echo $(pwd)
-			python -b $DIR/getStatistics.py
-			python -b $DIR/getAlphaBeta.py
+			if [ -f data-*-1.h5 ]; then
+				python -b $DIR/getStatistics.py
+				python -b $DIR/getAlphaBeta.py
+			fi
 			cd ..
 		done
 		python -b $DIR/plotGroupPredation.py
