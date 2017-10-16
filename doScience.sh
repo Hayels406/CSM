@@ -60,7 +60,8 @@ fi
 
 for wall in Square* ; do
 	cd $wall
-	if [ -f $wall/noise1.0 ]; then
+	echo $(pwd)
+	if [ -f noise1.0 ]; then
 		echo $(pwd)
 		for noise in noise*; do
 			cd $noise
