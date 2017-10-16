@@ -56,9 +56,12 @@ if [-f $HERE/Circular ]; then
 		cd $HERE
 	done
 fi
+
+
 for wall in Square* ; do
 	cd $wall
 	if [ -f $wall/noise1.0 ]; then
+		echo $(pwd)
 		for noise in noise*; do
 			cd $noise
 			for pred in pred*; do
