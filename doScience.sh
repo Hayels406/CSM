@@ -15,7 +15,7 @@ fi
 
 HERE=$(pwd)
 if [-f $HERE/Circular ]; then
-	for wall in Square* Circular; do
+	for wall in Circular; do
 		cd $wall
 		if [ -f $wall/noise1.0 ]; then
 			for noise in noise*; do
