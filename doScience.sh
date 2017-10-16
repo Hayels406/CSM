@@ -25,14 +25,14 @@ if [-f $HERE/Circular ]; then
 					for ni in group[0-9]*; do
 						cd $ni
 						echo $(pwd)
-						#python -b $DIR/getStatistics.py
-						#python -b $DIR/getAlphaBeta.py
+						python -b $DIR/getStatistics.py
+						python -b $DIR/getAlphaBeta.py
 						cd ..
 					done
-					#python -b $DIR/plotStats.py
-					#python -b $DIR/plotAlpha.py
-					#python -b $DIR/plotBeta.py
-					#python -b $DIR/plotGroupPredation.py
+					python -b $DIR/plotStats.py
+					python -b $DIR/plotAlpha.py
+					python -b $DIR/plotBeta.py
+					python -b $DIR/plotGroupPredation.py
 					cd ..
 				done
 				cd ..
@@ -43,14 +43,14 @@ if [-f $HERE/Circular ]; then
 			for ni in group[0-9]*; do
 				cd $ni
 				echo $(pwd)
-				#python -b $DIR/getStatistics.py
-				#python -b $DIR/getAlphaBeta.py
+				python -b $DIR/getStatistics.py
+				python -b $DIR/getAlphaBeta.py
 				cd ..
 			done
-			#python -b $DIR/plotStats.py
-			#python -b $DIR/plotAlpha.py
-			#python -b $DIR/plotBeta.py
-			#python -b $DIR/plotGroupPredation.py
+			python -b $DIR/plotStats.py
+			python -b $DIR/plotAlpha.py
+			python -b $DIR/plotBeta.py
+			python -b $DIR/plotGroupPredation.py
 			cd ..
 		done
 		cd $HERE
@@ -66,14 +66,14 @@ for wall in Square* ; do
 				for ni in group[0-9]*; do
 					cd $ni
 					echo $(pwd)
-					#python -b $DIR/getStatistics.py
-					#python -b $DIR/getAlphaBeta.py
+					python -b $DIR/getStatistics.py
+					python -b $DIR/getAlphaBeta.py
 					cd ..
 				done
-				#python -b $DIR/plotStats.py
-				#python -b $DIR/plotAlpha.py
-				#python -b $DIR/plotBeta.py
-				#python -b $DIR/plotGroupPredation.py
+				python -b $DIR/plotStats.py
+				python -b $DIR/plotAlpha.py
+				python -b $DIR/plotBeta.py
+				python -b $DIR/plotGroupPredation.py
 				cd ..
 			done
 			cd ..
@@ -84,14 +84,14 @@ for wall in Square* ; do
 		for ni in group[0-9]*; do
 			cd $ni
 			echo $(pwd)
-			#python -b $DIR/getStatistics.py
-			#python -b $DIR/getAlphaBeta.py
+			python -b $DIR/getStatistics.py
+			python -b $DIR/getAlphaBeta.py
 			cd ..
 		done
-		#python -b $DIR/plotStats.py
-		#python -b $DIR/plotAlpha.py
-		#python -b $DIR/plotBeta.py
-		#python -b $DIR/plotGroupPredation.py
+		python -b $DIR/plotStats.py
+		python -b $DIR/plotAlpha.py
+		python -b $DIR/plotBeta.py
+		python -b $DIR/plotGroupPredation.py
 		cd ..
 	done
 	cd $HERE
