@@ -17,7 +17,7 @@ HERE=$(pwd)
 for wall in Square* Circular*; do
 	cd $wall
 	for noise in noise*; do
-		cd noise
+		cd $noise
 		for pred in pred*; do
 			cd $pred
 			for ni in group[0-9]*; do
