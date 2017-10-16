@@ -81,7 +81,7 @@ for wall in Square* ; do
 			python -b $DIR/plotBeta.py
 			cd ..
 		done
-	fi
+	else
 	for pred in pred*; do
 		cd $pred
 		for ni in group[0-9]*; do
@@ -98,4 +98,5 @@ for wall in Square* ; do
 	python -b $DIR/plotAlpha.py
 	python -b $DIR/plotBeta.py
 	cd $HERE
+fi
 done
