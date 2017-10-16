@@ -45,7 +45,7 @@ ax.set_xticks(np.array(range(len(list(set(k))))) + 0.5)
 ax.set_xticklabels(sorted(list(set(k))))
 ax.set_yticks(np.array(range(len(list(set(Ni))))) + 0.5)
 ax.set_yticklabels(sorted(list(set(Ni))))
-plt.savefig('./Square/pcolorAlpha.png')
+plt.savefig('./pcolorAlpha.png')
 
 plt.close()
 for i in range(len(set(k))):
@@ -54,5 +54,5 @@ for i in range(len(set(k))):
 	plt.xlabel('Prey Neighbours', fontsize = 18)
 	plt.ylabel(r'$\alpha$', fontsize = 18)
 	plt.title(r'$k = '+str(kValue)+'$', fontsize = 20)
-	plt.savefig('./Square/pred'+str(kValue).zfill(3)+'/alpha.png')
+	plt.savefig('./pred'+str(kValue).zfill(3)+'/alpha.png')
 	plt.close()
