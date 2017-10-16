@@ -81,6 +81,7 @@ for wall in Square* ; do
 				python -b $DIR/plotStats.py
 				python -b $DIR/plotAlpha.py
 				python -b $DIR/plotBeta.py
+			fi
 			cd ..
 		done
 	else
