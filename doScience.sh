@@ -60,9 +60,7 @@ fi
 
 for wall in Square* ; do
 	cd $wall
-	echo $(pwd)
 	if [ -d noise1.0 ]; then
-		echo $(pwd)
 		for noise in noise*; do
 			cd $noise
 			for pred in pred*; do
@@ -70,8 +68,10 @@ for wall in Square* ; do
 				for ni in group[0-9]*; do
 					cd $ni
 					echo $(pwd)
-					python -b $DIR/getStatistics.py
-					python -b $DIR/getAlphaBeta.py
+					if [ -f data-*-1.h5 ]; then
+						python -b $DIR/getStatistics.py
+						python -b $DIR/getAlphaBeta.py
+					fi
 					cd ..
 				done
 				python -b $DIR/plotGroupPredation.py
