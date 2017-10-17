@@ -25,14 +25,14 @@ if [ -d $HERE/Circular ]; then
 					for ni in group[0-9]*; do
 						cd $ni
 						echo $(pwd)
-						python -b $DIR/getStatistics.py
-						python -b $DIR/getAlphaBeta.py
+						python -b $DIR/postProcessing/getStatistics.py
+						python -b $DIR/postProcessing/getAlphaBeta.py
 						cd ..
 					done
-					python -b $DIR/plotStats.py
-					python -b $DIR/plotAlpha.py
-					python -b $DIR/plotBeta.py
-					python -b $DIR/plotGroupPredation.py
+					python -b $DIR/plotting/plotStats.py
+					python -b $DIR/plotting/plotAlpha.py
+					python -b $DIR/plotting/plotBeta.py
+					python -b $DIR/plotting/plotGroupPredation.py
 					cd ..
 				done
 				cd ..

@@ -31,11 +31,18 @@ def makeSquareWalls(wallTop,wallBottom,wallLeft,wallRight):
 	w['n'] = [np.array([0,-1]),np.array([0,1]),np.array([1,0]),np.array([-1,0])]
 	return w
 
+def makeSquareWalls(wallSize):
+	#Walls defined by four lines: Ax+By+C = 0
+	w = dict()
+	w['eqn'] = [[0,1,-wallSize],[0,1,wallSize],[1,0,wallSize],[1,0,-wallSize]]
+	w['n'] = [np.array([0,-1]),np.array([0,1]),np.array([1,0]),np.array([-1,0])]
+	return w
+
 def init():
 	#Sets up main data structure
 	#Returns: dictionary of simulation data
 	data = dict()
-	cachedTimesteps = 8*int(round(snapshotPeriod/dt))
+	cachedTimesteps = 11*int(round(snapshotPeriod/dt))
 	data['dog'] = np.zeros((cachedTimesteps, 2))
 	data['dogVel'] = np.zeros((cachedTimesteps,2))
 	data['sheep'] = np.zeros((cachedTimesteps,NP, 2))
