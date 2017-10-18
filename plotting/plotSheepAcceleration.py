@@ -27,7 +27,7 @@ av = np.array([])
 maxAcc = np.array([])
 for dataName in files:
     data = init()
-    h5f = h5py.File(dFile,'r')
+	h5f = h5py.File(dFile,'r')
 	itime = np.copy(h5f['itime'])[0]
 	data['alive'] = np.copy(h5f['alive'])
 	data['t'] = np.copy(h5f['t'])
