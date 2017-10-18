@@ -33,22 +33,21 @@ for dataName in files:
 	data['t'] = np.copy(h5f['t'])
 	data['sheepAcc'] = np.copy(h5f['sheepAcc'])
 
-    if dataName == files[0]:
-        data['t'] = data['t'][0:itime]
-        data['sheepAcc'] = data['sheepAcc'][0:itime]
-        acc = np.sqrt((data['sheepAcc']**2).sum(axis = 2))[:,data['alive'][itime]][:,0:20]
-        for i in range(itime):
-            maxAcc = np.append(maxAcc, np.max(np.sqrt((data['sheepAcc'][i][data['alive'][i]]**2).sum(axis = 1)), axis = 0))
-            av = np.append(av, np.sqrt((data['sheepAcc'][i][data['alive'][i]]**2).sum(axis = 1)).mean(axis = 0))
-    else:
-        data['t'] = data['t'][4:itime]
-        data['sheepAcc'] = data['sheepAcc'][4:itime]
-        acc = np.append(acc, np.sqrt((data['sheepAcc']**2).sum(axis = 2))[:,data['alive'][itime]][:,0:20], axis = 0)
-        for i in range(itime):
-            maxAcc = np.append(maxAcc, np.max(np.sqrt((data['sheepAcc'][i][data['alive'][i]]**2).sum(axis = 1)), axis = 0))
-            av = np.append(av, np.sqrt((data['sheepAcc'][i][data['alive'][i]]**2).sum(axis = 1)).mean(axis = 0))
-
-    t = np.append(t, data['t'], axis = 0)
+	if dataName == files[0]:
+		data['t'] = data['t'][0:itime]
+		data['sheepAcc'] = data['sheepAcc'][0:itime]
+		acc = np.sqrt((data['sheepAcc']**2).sum(axis = 2))[:,data['alive'][itime]][:,0:20]
+		for i in range(itime):
+			maxAcc = np.append(maxAcc, np.max(np.sqrt((data['sheepAcc'][i][data['alive'][i]]**2).sum(axis = 1)), axis = 0))
+			av = np.append(av, np.sqrt((data['sheepAcc'][i][data['alive'][i]]**2).sum(axis = 1)).mean(axis = 0))
+	else:
+		data['t'] = data['t'][4:itime]
+		data['sheepAcc'] = data['sheepAcc'][4:itime]
+		acc = np.append(acc, np.sqrt((data['sheepAcc']**2).sum(axis = 2))[:,data['alive'][itime]][:,0:20], axis = 0)
+		for i in range(itime):
+			maxAcc = np.append(maxAcc, np.max(np.sqrt((data['sheepAcc'][i][data['alive'][i]]**2).sum(axis = 1)), axis = 0))
+			av = np.append(av, np.sqrt((data['sheepAcc'][i][data['alive'][i]]**2).sum(axis = 1)).mean(axis = 0))
+	t = np.append(t, data['t'], axis = 0)
 
 plt.plot(t[t<=2000][10:], acc[t<=2000][10:, :], alpha = 0.2)
 plt.plot(t[t<=2000][10:], av[t<=2000][10:,])
