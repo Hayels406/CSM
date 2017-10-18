@@ -23,14 +23,6 @@ from fixedParams import *
 from params import *
 
 
-
-def makeSquareWalls(wallTop,wallBottom,wallLeft,wallRight):
-	#Walls defined by four lines: Ax+By+C = 0
-	w = dict()
-	w['eqn'] = [[0,1,-wallTop],[0,1,-wallBottom],[1,0,-wallLeft],[1,0,-wallRight]]
-	w['n'] = [np.array([0,-1]),np.array([0,1]),np.array([1,0]),np.array([-1,0])]
-	return w
-
 def makeSquareWalls(wallSize):
 	#Walls defined by four lines: Ax+By+C = 0
 	w = dict()
@@ -55,11 +47,11 @@ def init():
 		sys.exit("Error: updateMethod not recognized!")
 
 	if wallType == 'Square' :
-		data['walls'] = makeSquareWalls(wallTop,wallBottom,wallLeft,wallRight)
+		data['walls'] = makeSquareWalls(wallSize)
 		data['forceWalls'] = np.zeros((cachedTimesteps,NP,2))
 		data['forceWallsDog'] = np.zeros((cachedTimesteps,2))
 	elif wallType == 'Circular':
-		data['walls'] = [wallTop]
+		data['walls'] = [wallSize]
 		data['forceWalls'] = np.zeros((cachedTimesteps,NP,2))
 		data['forceWallsDog'] = np.zeros((cachedTimesteps,2))
 	else:
@@ -323,7 +315,6 @@ def doAccelerationStep(data, q=0):
 		sheep = data['sheep'][itime][data['alive'][itime]][(np.array(angles) > rangeLoc[0]) &  (np.array(angles) < rangeLoc[1])]
 		numberInteractingSheep = np.shape(sheep)[0]
 		data['interactingSheep'][itime] = ((np.array(angles) > rangeLoc[0]) &  (np.array(angles) < rangeLoc[1])).tolist()
-
 	elif dogNeareastNeigh == 'On':
 		tree = KDTree(data['sheep'][itime][data['alive'][itime]])
 		idx = tree.query(data['dog'][itime].reshape(1, -1), np.min([k, sum(data['alive'][itime])]))[1][0]
@@ -350,7 +341,6 @@ def doAccelerationStep(data, q=0):
 			w = data['walls']['eqn'][wall]
 
 			data['forceWallsDog'][itime] += (A*np.exp((np.dot(-data['walls']['n'][wall], data['dog'][itime].T)-np.abs(w[2])+C)/B)*data['walls']['n'][wall])
-
 	elif wallType == 'Circular':
 		distance = np.linalg.norm(data['dog'][itime])
 		if distance == 0.0:
@@ -374,7 +364,6 @@ def doAccelerationStep(data, q=0):
 		data['sheep'][itime + 1] = data['sheep'][itime] + data['sheepVel'][itime]*dt
 		data['t'][itime+1] = data['t'][itime] + dt
 		return 0
-
 	elif timeStepMethod == 'Adaptive':
 		#Adaptive time step
 		if itime == 0:
@@ -455,6 +444,11 @@ def initPlot(data, savePlotPng):
 	if predOff == False:
 		dogQuiver = plt.quiver(data['dog'][0, 0], data['dog'][0, 1], np.cos(dogTheta), np.sin(dogTheta), scale = 30, color = 'red')
 	sheepQuiver = plt.quiver(data['sheep'][0,:,0], data['sheep'][0,:,1], np.cos(sheepTheta), np.sin(sheepTheta), scale = 30, cmap = cmap, norm = norm)
+
+	wallLeft = -wallSize
+	wallRight = wallSize
+	wallBottom = -wallSize
+	wallTop = wallSize
 	plt.axis([wallLeft-0.25,wallRight+0.25,wallBottom-0.25,wallTop+0.25])
 	plt.axes().set_aspect('equal')
 	plotid = 0
