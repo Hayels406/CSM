@@ -20,10 +20,11 @@ predation_length_scale = 0.05
 eta = 0.
 k = 10
 sigma = 0.5 #0.5 gives not much higher than +/- pi/4
+lam = 0.5
 
 timeStepMethod = 'Adaptive'         #Euler or Adaptive
 updateMethod = 'Acceleration'       #Acceleration or Velocity
-flocking = 'PredatorPrey'           #PredatorPrey, Vicsek, TopoVicsek
+flocking = 'PredatorPrey'           #PredatorPrey, Vicsek, TopoVicsek, PPPoisson
 
 sheepSheepInteration = 'Off'    #F_ij term
 allSheepSeeDog = 'On'           #Can all sheep see dog?

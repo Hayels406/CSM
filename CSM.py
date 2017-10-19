@@ -22,6 +22,10 @@ from defaultParams import *
 from fixedParams import *
 from params import *
 
+from CSMfunctions.noiseFunc import *
+from CSMfunctions.flockingFunc import *
+from CSMfunctions.flightFunc import *
+from CSMfunctions.wallFunc import *
 
 def makeSquareWalls(wallSize):
 	#Walls defined by four lines: Ax+By+C = 0
@@ -34,7 +38,7 @@ def init():
 	#Sets up main data structure
 	#Returns: dictionary of simulation data
 	data = dict()
-	cachedTimesteps = 11*int(round(snapshotPeriod/dt))
+	cachedTimesteps = 6*int(round(snapshotPeriod/dt))
 	data['dog'] = np.zeros((cachedTimesteps, 2))
 	data['dogVel'] = np.zeros((cachedTimesteps,2))
 	data['sheep'] = np.zeros((cachedTimesteps,NP, 2))
@@ -172,117 +176,25 @@ def doAccelerationStep(data, q=0):
 
 			data['alive'][itime:,prey_too_close] = False
 
-	if (noise == 'Uniform')*(itime > 4):
-		dogTheta = np.arctan2(data['dogVel'][itime,1], data['dogVel'][itime,0])
-		sheepTheta = np.arctan2(data['sheepVel'][itime,:,1][data['alive'][itime]], data['sheepVel'][itime,:,0][data['alive'][itime]])
-
-		dogVel = np.sqrt((data['dogVel'][itime]**2).sum())
-		sheepVel = np.sqrt((data['sheepVel'][itime][data['alive'][itime]]**2).sum(axis = 1))
-
-		dogTheta = dogTheta + np.random.rand(1)[0]*np.pi*eta - np.pi*eta/2.
-		sheepTheta = sheepTheta + np.random.rand(sum(data['alive'][itime]))*np.pi*eta - np.pi*eta/2.
-
-		data['dogVel'][itime] = dogVel*np.array([np.cos(dogTheta), np.sin(dogTheta)])
-		data['sheepVel'][itime][data['alive'][itime]] = sheepVel.reshape(sum(data['alive'][itime]), 1)*np.transpose(np.array([np.cos(sheepTheta), np.sin(sheepTheta)]))
-
-	elif (noise == 'Normal')*(itime > 4):
-		dogTheta = np.arctan2(data['dogVel'][itime,1], data['dogVel'][itime,0])
-		sheepTheta = np.arctan2(data['sheepVel'][itime,:,1][data['alive'][itime]], data['sheepVel'][itime,:,0][data['alive'][itime]])
-
-		dogVel = np.sqrt((data['dogVel'][itime]**2).sum())
-		sheepVel = np.sqrt((data['sheepVel'][itime][data['alive'][itime]]**2).sum(axis = 1))
-
-		dogTheta = dogTheta + np.random.normal(0, sigma)
-		sheepTheta = sheepTheta + np.random.normal(0, sigma, sum(data['alive'][itime]))
-
-		data['dogVel'][itime] = dogVel*np.array([np.cos(dogTheta), np.sin(dogTheta)])
-		data['sheepVel'][itime][data['alive'][itime]] = sheepVel.reshape(sum(data['alive'][itime]), 1)*np.transpose(np.array([np.cos(sheepTheta), np.sin(sheepTheta)]))
-	elif noise != 'Off':
-		sys.exit('Invalid Noise')
+	data = includeNoise(data, itime, noise)
 
 	#Acceleration of sheep
 	#Flocking
 	if flocking == 'PredatorPrey':
-		tree = KDTree(data['sheep'][itime][data['alive'][itime]])
-		idx = tree.query(data['sheep'][itime][data['alive'][itime]], np.min([groupSize, sum(data['alive'][itime])]))[1][:,1:]
-		distMatrix = np.array(map(lambda j:data['sheep'][itime,j] - data['sheep'][itime][data['alive'][itime]],np.array(range(NP))[data['alive'][itime]]))
-		if predation == 'Off':
-			normStuff = np.linalg.norm(distMatrix, axis = 2).reshape(NP,NP,1) + sheepSize
-		else:
-			normStuff = np.linalg.norm(distMatrix, axis = 2).reshape(sum(data['alive'][itime]), sum(data['alive'][itime]), 1) + sheepSize
-		if gaussian == 'On':
-			sheepAccFlocking = (1./np.min([groupSize, sum(data['alive'][itime])]))*np.array(map(lambda j:((f*normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*np.exp(-normStuff[j,idx[j],:]**2/visualDist**2)*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(sum(data['alive'][itime])))).sum(axis = 1)
-		else:
-			sheepAccFlocking = (1./np.min([groupSize, sum(data['alive'][itime])]))*np.array(map(lambda j:((f*normStuff[j,idx[j],:]**(-1) - a*normStuff[j,idx[j],:])*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(sum(data['alive'][itime])))).sum(axis = 1)
+		sheepAccFlocking = doPredatorPrey(data, itime, NP, f, a, groupSize, sheepSize, predation, gaussian)
 
 	elif flocking == 'PPPoisson':
-		distributionN = groupSize + np.random.poisson(lam, NP) - np.random.poisson(lam, NP)
-		while any(distributionN < 0):
-			distributionN = groupSize + np.random.poisson(lam, NP) - np.random.poisson(lam, NP)
-		neighCalcTree = itemfreq(distributionN)[:,0]
-		neighCalcTree = [int(x) for x in neighCalcTree]
-
-		tree = KDTree(data['sheep'][itime][data['alive'][itime]])
-		idx = tree.query(data['sheep'][itime][data['alive'][itime]], np.min([np.max(neighCalcTree), sum(data['alive'][itime])]))[1][:,1:]
-		distMatrix = np.array(map(lambda j:data['sheep'][itime,j] - data['sheep'][itime][data['alive'][itime]],np.array(range(NP))[data['alive'][itime]]))
-		print idx
-
-		if predation == 'Off':
-			normStuff = np.linalg.norm(distMatrix, axis = 2).reshape(NP,NP,1) + sheepSize
-		else:
-			normStuff = np.linalg.norm(distMatrix, axis = 2).reshape(sum(data['alive'][itime]), sum(data['alive'][itime]), 1) + sheepSize
-
-		acc_temp = np.zeros(NP)
-		for neighbours in neighCalcTree:
-			if neighbours == 0:
-				acc_temp[distributionN == neighbours] = 0.0
-			else:
-				acc_temp[distributionN == neighbours] = (1./np.min([neighbours, sum(data['alive'][itime])]))*np.array(map(lambda j:((f*normStuff[j,idx[j][:neighbours],:]**(-1) - a*normStuff[j,idx[j][:neighbours],:] )*distMatrix[j,idx[j][:neighbours],:]*(normStuff[j,idx[j][:neighbours],:]**(-1))), range(sum(data['alive'][itime])))).sum(axis = 1)
-		sheepAccFlocking = acc_temp[data['alive'][itime]]
-
+		sheepAccFlocking = doPPPoisson(data, itime, NP, f, a, lam, groupSize, predation)
 	elif flocking == 'Vicsek':
-		sheepAccFlocking = np.zeros(([data['alive'][itime]].sum(), 2))
-		tree = KDTree(data['sheep'][itime][data['alive'][itime]])
-		idx = tree.query_radius(data['sheep'][itime], r)
-		for i in np.array(range(NP))[data['alive'][itime]]:
-			dumidx = idx[i][idx[i] != i] # remove identity particle
-			if len(dumidx) >= 1: # Some neighbours
-				sheepAccTemp = (data['sheepVel'][itime][data['alive'][itime]][dumidx].mean(axis = 0) - data['sheepVel'][itime][i])
-				if itime < 4.:
-					sheepAccFlocking[i] = sheepAccTemp/dt
-				else:
-					sheepAccFlocking[i] = sheepAccTemp/q*dt
-			else:  # No neighbours
-				sheepAccFlocking[i] = np.zeros(2)
+		sheepAccFlocking = doVicsek(data, itime, NP, r)
 
 	elif flocking == 'Topo':
-		tree = KDTree(data['sheep'][itime][data['alive'][itime]])
-		idx = tree.query(data['sheep'][itime][data['alive'][itime]], np.min([n+1, sum(data['alive'][itime])]))[1][:,1:]
-		sheepAccTemp = (data['sheepVel'][itime][idx].mean(axis = 1) - data['sheepVel'][itime])
-		if itime < 4.:
-			sheepAccFlocking = sheepAccTemp/dt
-		else:
-			sheepAccFlocking = sheepAccTemp/q*dt
+		sheepAccFlocking = doTopo(data, itime, NP, n)
 	else:
 		sys.exit('Invalid flocking mechanisim: ' + flocking + ' in doAccelerationStep')
 
 	#Flight
-	preyMinusPred = data['sheep'][itime][data['alive'][itime]] - data['dog'][itime]
-	if predation == 'Off':
-		normStuff2 = np.linalg.norm(preyMinusPred,axis=1).reshape(NP,1)
-	else:
-		normStuff2 = np.linalg.norm(preyMinusPred, axis = 1).reshape(sum(data['alive'][itime]),1)
-
-	Gfunc = b*normStuff2**(-1)
-
-	if allSheepSeeDog == 'On':
-		data['sheepAccFlight'][itime][data['alive'][itime]] = Gfunc*preyMinusPred*(normStuff2**(-1))
-	elif allSheepSeeDog == 'Off':
-		vor = Voronoi(np.concatenate((data['sheep'][itime][data['alive'][itime]], data['dog'][itime][None,:]), axis = 0))
-		data['dog_index_neighbours'] = np.array([t[1] for t in [(b1, a1) for a1, b1 in vor.ridge_dict.keys()] + vor.ridge_dict.keys() if t[0] == NP]) #Calculates the Voronoi neighbours of dog
-		data['sheepAccFlight'][itime][data['alive'][itime]][data['dog_index_neighbours']] = (Gfunc*preyMinusPred*(normStuff2**(-1)))[data['dog_index_neighbours']]
-	else:
-		sys.exit('Invalid allSheepSeeDog:'+allSheepSeeDog+' in doAccelerationStep()')
+	data = doFlight(data, itime, NP, b, allSheepSeeDog)
 
 	data['sheepAcc'][itime][data['alive'][itime]] = (data['sheepAccFlight'][itime][data['alive'][itime]] + sheepAccFlocking - data['sheepVel'][itime][data['alive'][itime]])/sheepMass
 
@@ -290,20 +202,10 @@ def doAccelerationStep(data, q=0):
 		indices = np.where(np.sqrt((data['sheepAcc'][itime]**2).sum(axis = 1)) > accCap)
 		data['sheepAcc'][itime][indices] = accCap*data['sheepAcc'][itime][indices]/np.transpose(np.tile(np.sqrt((data['sheepAcc'][itime][indices]**2).sum(axis = 1)), (2, 1)))
 
-	if wallType == 'Square':
-		for wall in range(len(data['walls']['eqn'])):
-			w = data['walls']['eqn'][wall]
-
-			data['forceWalls'][itime][data['alive'][itime]] += (A*np.exp((np.dot(-data['walls']['n'][wall], data['sheep'][itime].T)-np.abs(w[2])+C)/B).reshape(NP,1)*data['walls']['n'][wall])[data['alive'][itime]]
-
-	elif wallType == 'Circular':
-		distance = np.linalg.norm(data['sheep'][itime][data['alive'][itime]], axis = 1)
-		unit = data['sheep'][itime][data['alive'][itime]]/distance.reshape(sum(data['alive'][itime]),1)
-
-		data['forceWalls'][itime][data['alive'][itime]] = -A*unit*np.exp((distance-data['walls'][0]+C)/B ).reshape(sum(data['alive'][itime]),1)
+	data = doWalls(data, itime, A, B, C, NP, wallType)
 
 
-	data['sheepAcc'][itime][data['alive'][itime]] = data['sheepAcc'][itime][data['alive'][itime]] + data['forceWalls'][itime][data['alive'][itime]]
+	data['sheepAcc'][itime][data['alive'][itime]] += data['forceWalls'][itime][data['alive'][itime]]
 
 #################################################################
 	#Acceleration of dog
