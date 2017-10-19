@@ -17,9 +17,6 @@ sys.path.insert(0,os.getcwd())
 from params import *
 
 
-from CSM import init
-from CSM import loadData
-
 files = sorted(glob('*-1.h5'))
 t = np.array([])
 for dataName in files:
@@ -30,16 +27,16 @@ for dataName in files:
 	data['t'] = np.copy(h5f['t'])
 	data['dogAcc'] = np.copy(h5f['dogAcc'])
 
-    if dataName == files[0]:
-        data['t'] = data['t'][0:itime]
-        data['dogAcc'] = data['dogAcc'][0:itime]
-        Acc = np.sqrt((data['dogAcc']**2).sum(axis = 1))
-        tf = len(Acc)
-    else:
-        data['t'] = data['t'][4:itime]
-        data['dogAcc'] = data['dogAcc'][4:itime]
-        Acc = np.append(Acc, np.sqrt((data['dogAcc']**2).sum(axis = 1)), axis = 0)
-    t = np.append(t, data['t'], axis = 0)
+	if dataName == files[0]:
+		data['t'] = data['t'][0:itime]
+		data['dogAcc'] = data['dogAcc'][0:itime]
+		Acc = np.sqrt((data['dogAcc']**2).sum(axis = 1))
+		tf = len(Acc)
+	else:
+		data['t'] = data['t'][4:itime]
+		data['dogAcc'] = data['dogAcc'][4:itime]
+		Acc = np.append(Acc, np.sqrt((data['dogAcc']**2).sum(axis = 1)), axis = 0)
+	t = np.append(t, data['t'], axis = 0)
 if topsy == False:
 	rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 	rc('text', usetex=True)

@@ -17,9 +17,6 @@ sys.path.insert(0,os.getcwd())
 from params import *
 
 
-from CSM import init
-from CSM import loadData
-
 files = sorted(glob('*-1.h5'))
 t = np.array([])
 av = np.array([])
