@@ -23,8 +23,12 @@ from CSM import loadData
 files = sorted(glob('*-1.h5'))
 t = np.array([])
 for dataName in files:
-    data = init()
-    itime = loadData(data,dataName)
+	data = dict()
+	h5f = h5py.File(dataName,'r')
+	itime = np.copy(h5f['itime'])[0]
+	data['alive'] = np.copy(h5f['alive'])
+	data['t'] = np.copy(h5f['t'])
+	data['dogAcc'] = np.copy(h5f['dogAcc'])
 
     if dataName == files[0]:
         data['t'] = data['t'][0:itime]
