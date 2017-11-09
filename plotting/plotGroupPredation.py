@@ -19,7 +19,7 @@ from glob import glob
 pwd = os.getcwd()
 k = int(pwd[pwd.rfind('pred')+4:])
 
-number_of_lines = len(glob('group*0*'))
+number_of_lines = len(glob('group*[0-9]*'))
 cm_subsection = np.linspace(0., 1., number_of_lines)
 colors = [ cm.magma(x) for x in cm_subsection]
 
@@ -28,13 +28,16 @@ levels = range(5,500+5,5)
 CS3 = plt.contourf(Z, levels, cmap='magma')
 plt.clf()
 
+area = []
+
 def movingaverage(interval, window_size):
     window= np.ones(int(window_size))/float(window_size)
     return np.convolve(interval, window, 'same')
 
 j = 0
-for group in sorted(glob('group*0*')):
+for group in sorted(glob('group*[0-9]*')):
 	files = glob(group + '/data*.h5')
+	print group
 
 	alive = []
 	time = []
@@ -68,9 +71,21 @@ for group in sorted(glob('group*0*')):
 	if np.shape(data2)[0] > 0:
 		y_av = movingaverage(data2[:,1], 75)
 		plt.plot(data2[:,0][100:-50], y_av[100:-50], label = group, color = colors[j])
-	
+
+	trap = np.trapz(y_av[100:-50], x = data2[:,0][100:-50])
+	area += [[int(group[5:]), trap]]
 	j +=1
 plt.colorbar(CS3)
 plt.xlabel('Time', fontsize = 18)
 plt.ylabel('$N(t)$', fontsize = 18)
 plt.savefig('./groupPredation')
+
+
+np.save('./area.npy', area)
+area = np.array(area)
+plt.plot(area[:,0], area[:,1], lw = 2)
+y_av = movingaverage(area[:,1], 3)
+plt.plot(area[:,0][5:-5], y_av[5:-5], lw = 2)
+plt.xlabel('Group Size', fontsize = 18)
+plt.ylabel('Area', fontsize = 18)
+plt.savefig('./groupPredationArea.png')
