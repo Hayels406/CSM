@@ -172,24 +172,33 @@ def doAccelerationStep(data, q=0):
 		if np.min(dist_id[data['alive'][itime]]) < predation_length_scale:
 			prey_too_close = np.where(dist_id == np.min(dist_id[data['alive'][itime]]))[0][0]
 
-			print 'predation of prey', prey_too_close, ': ', sum(data['alive'][itime])
+			if constantNP == False:
+				print 'predation of prey', prey_too_close, ': ', sum(data['alive'][itime])
+				data['alive'][itime:, prey_too_close] = False
+			else:
+				data['alive'][itime, prey_too_close] = False
+				print 'Moving prey: ', prey_too_close
+				data['sheep'][itime, prey_too_close] = np.random.rand(2)*wallSize - wallSize/2
+				data['sheepVel'][itime, prey_too_close] = 0.0
+				data['sheepAcc'][itime, prey_too_close] = 0.0
 
-			data['alive'][itime:,prey_too_close] = False
 
 	data = includeNoise(data, itime, noise)
 
 	#Acceleration of sheep
 	#Flocking
 	if flocking == 'PredatorPrey':
-		sheepAccFlocking = doPredatorPrey(data, itime, NP, f, a, groupSize, sheepSize, predation, gaussian)
+		sheepAccFlocking = doPredatorPrey(data, itime, NP, f, a, groupSize, sheepSize, predation, gaussian, constantNP)
 
 	elif flocking == 'PPPoisson':
 		sheepAccFlocking = doPPPoisson(data, itime, NP, f, a, lam, groupSize, predation)
+
 	elif flocking == 'Vicsek':
 		sheepAccFlocking = doVicsek(data, itime, NP, r)
 
 	elif flocking == 'Topo':
 		sheepAccFlocking = doTopo(data, itime, NP, n)
+
 	else:
 		sys.exit('Invalid flocking mechanisim: ' + flocking + ' in doAccelerationStep')
 
@@ -378,29 +387,38 @@ def initPlot(data, savePlotPng):
 def plotDataPositions(data, tstep, dQuiv, sQuiv, savePlotPng):
 	if predOff == False:
 		dogTheta = np.arctan2(data['dogVel'][tstep-1,1], data['dogVel'][tstep-1,0])
-	sheepTheta = np.arctan2(data['sheepVel'][tstep-1,:,1][data['alive'][tstep]], data['sheepVel'][tstep-1,:,0][data['alive'][tstep]])
-
+	if constantNP == False:
+		sheepTheta = np.arctan2(data['sheepVel'][tstep-1,:,1][data['alive'][tstep]], data['sheepVel'][tstep-1,:,0][data['alive'][tstep]])
+	else:
+		sheepTheta = np.arctan2(data['sheepVel'][tstep-1,:,1], data['sheepVel'][tstep-1,:,0])
 
 	colorQuiver = np.zeros(NP)
 	if predOff == False:
 		if showSheepDogCanSee == 'On':
 			colorQuiver[data['dog_index_neighbours']] = 1.
-			if showDogInfluence == 'On' or segmentColours == 'On':
+			if showDogInfluence == 'On' or segmentColours == 'On' or constantNPShow == 'On':
 				sys.exit('You cannot show multiple colourings')
 		elif showDogInfluence == 'On':
 			colorQuiver[(sheepTheta > dogTheta - np.pi/16 ) * (sheepTheta < dogTheta + np.pi/16)] = 1
-			if showSheepDogCanSee == 'On' or segmentColours == 'On':
+			if showSheepDogCanSee == 'On' or segmentColours == 'On' or constantNPShow == 'On':
 				sys.exit('You cannot show multiple colourings')
 		elif segmentColours == 'On':
 			colorQuiver = data['interactingSheep'][tstep-1]
-			if showDogInfluence == 'On' or showSheepDogCanSee == 'On':
+			if showDogInfluence == 'On' or showSheepDogCanSee == 'On' or constantNPShow == 'On':
+				sys.exit('You cannot show multiple colourings')
+		elif constantNPShow == 'On':
+			colorQuiver[data['alive'][tstep-1] == False] = 1.
+			if showDogInfluence == 'On' or showSheepDogCanSee == 'On' or segmentColours == 'On':
 				sys.exit('You cannot show multiple colourings')
 
 		dQuiv.set_offsets(np.transpose([data['dog'][tstep, 0], data['dog'][tstep, 1]]))
 		dQuiv.set_UVC(np.cos(dogTheta),np.sin(dogTheta))
-
-	sQuiv.set_offsets(np.transpose([data['sheep'][tstep,:, 0][data['alive'][tstep]], data['sheep'][tstep,:, 1][data['alive'][tstep]]]))
-	sQuiv.set_UVC(np.cos(sheepTheta), np.sin(sheepTheta), colorQuiver)
+	if constantNP == False:
+		sQuiv.set_offsets(np.transpose([data['sheep'][tstep,:, 0][data['alive'][tstep]], data['sheep'][tstep,:, 1][data['alive'][tstep]]]))
+		sQuiv.set_UVC(np.cos(sheepTheta), np.sin(sheepTheta), colorQuiver)
+	else:
+		sQuiv.set_offsets(np.transpose([data['sheep'][tstep,:, 0], data['sheep'][tstep,:, 1]]))
+		sQuiv.set_UVC(np.cos(sheepTheta), np.sin(sheepTheta), colorQuiver)
 
 	if savePlotPng == 'On':
 		plt.savefig('frames/'+str(int(np.floor(data['t'][tstep]/plotPeriod))).zfill(7)+'.png')

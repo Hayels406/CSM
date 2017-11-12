@@ -7,10 +7,12 @@ def doPredatorPrey(DATA, ITIME, Np, F, A, GROUPSIZE, SHEEPSIZE, PREDATION, GAUSS
     tree = KDTree(DATA['sheep'][ITIME][DATA['alive'][ITIME]])
     idx = tree.query(DATA['sheep'][ITIME][DATA['alive'][ITIME]], np.min([GROUPSIZE, sum(DATA['alive'][ITIME])]))[1][:,1:]
     distMatrix = np.array(map(lambda j:DATA['sheep'][ITIME,j] - DATA['sheep'][ITIME][DATA['alive'][ITIME]],np.array(range(Np))[DATA['alive'][ITIME]]))
+
     if PREDATION == 'Off':
         normStuff = np.linalg.norm(distMatrix, axis = 2).reshape(Np,Np,1) + SHEEPSIZE
     else:
         normStuff = np.linalg.norm(distMatrix, axis = 2).reshape(sum(DATA['alive'][ITIME]), sum(DATA['alive'][ITIME]), 1) + SHEEPSIZE
+
     if GAUSSIAN == 'On':
         sheepAccFlocking = (1./np.min([GROUPSIZE, sum(DATA['alive'][ITIME])]))*np.array(map(lambda j:((F*normStuff[j,idx[j],:]**(-1) - A*normStuff[j,idx[j],:])*np.exp(-normStuff[j,idx[j],:]**2/VISUALDIST**2)*distMatrix[j,idx[j],:]*(normStuff[j,idx[j],:]**(-1))), range(sum(DATA['alive'][ITIME])))).sum(axis = 1)
     else:

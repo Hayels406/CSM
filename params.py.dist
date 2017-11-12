@@ -38,6 +38,7 @@ predOff = False
 noise = 'Off'
 dogNeareastNeigh = 'Off'
 dogCentrePrey = 'Off'
+constantNP = False
 
 wallType = 'Square'
 wallSize = 1.25
@@ -66,3 +67,4 @@ fileName = 'data-0000200.h5'
 showSheepDogCanSee = 'Off'
 showDogInfluence = 'Off'
 segmentColours = 'Off'
+constantNPShow = 'Off'
