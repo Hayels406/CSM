@@ -77,6 +77,8 @@ def init():
 		sys.exit("Error: updateMethod not recognized!")
 	if segments == 'On':
 		data['interactingSheep'] = np.zeros((cachedTimesteps, NP))
+	if constantNP == True:
+		data['deathCount'] = np.zeros(cachedTimesteps)
 	return data
 
 def initCond(data):
@@ -181,6 +183,7 @@ def doAccelerationStep(data, q=0):
 				data['sheep'][itime, prey_too_close] = np.random.rand(2)*wallSize - wallSize/2
 				data['sheepVel'][itime, prey_too_close] = 0.0
 				data['sheepAcc'][itime, prey_too_close] = 0.0
+				data['deathCount'][itime:] = data['deathCount'][itime - 1] + 1
 
 
 	data = includeNoise(data, itime, noise)
