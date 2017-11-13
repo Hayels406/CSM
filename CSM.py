@@ -188,7 +188,7 @@ def doAccelerationStep(data, q=0):
 	#Acceleration of sheep
 	#Flocking
 	if flocking == 'PredatorPrey':
-		sheepAccFlocking = doPredatorPrey(data, itime, NP, f, a, groupSize, sheepSize, predation, gaussian, constantNP)
+		sheepAccFlocking = doPredatorPrey(data, itime, NP, f, a, groupSize, sheepSize, predation, gaussian)
 
 	elif flocking == 'PPPoisson':
 		sheepAccFlocking = doPPPoisson(data, itime, NP, f, a, lam, groupSize, predation)
