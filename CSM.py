@@ -178,9 +178,13 @@ def doAccelerationStep(data, q=0):
 				print 'predation of prey', prey_too_close, ': ', sum(data['alive'][itime])
 				data['alive'][itime:, prey_too_close] = False
 			else:
-				data['alive'][itime, prey_too_close] = False
 				print 'Moving prey: ', prey_too_close
-				data['sheep'][itime, prey_too_close] = np.random.rand(2)*wallSize - wallSize/2
+				min_dist_ij = 0.
+
+				while min_dist_ij < 0.001:
+					data['sheep'][itime, prey_too_close] = np.random.rand(2)*wallSize - wallSize/2
+					dist_ij = cdist(data['sheep'][itime, prey_too_close].reshape(1,2), data['sheep'][itime])
+					min_dist_ij = np.min(dist_ij[np.nonzero(dist_ij)])
 				data['sheepVel'][itime, prey_too_close] = 0.0
 				data['sheepAcc'][itime, prey_too_close] = 0.0
 				data['deathCount'][itime:] = data['deathCount'][itime - 1] + 1
