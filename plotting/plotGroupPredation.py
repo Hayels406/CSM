@@ -40,7 +40,6 @@ for group in sorted(glob('group*[0-9]*')):
 	print group
 
 	alive = []
-	predated = []
 	time = []
 	plotPeriod = 0.1
 
@@ -52,32 +51,19 @@ for group in sorted(glob('group*[0-9]*')):
 		itime = np.copy(h5f['itime'])[0]
 		data['alive'] = np.copy(h5f['alive'])
 		data['t'] = np.copy(h5f['t'])
-		if np.min(data['alive'][:itime].sum(axis = 1)) > 400:
-			constantNP = True
-			data['deathCount'] = np.copy(h5f['deathCount'])
-		else:
-			constantNP = False
 
 		lastPlot = 0
 		for i in range(itime):
 			if data['t'][i] - lastPlot > plotPeriod:
 				time.append(data['t'][i])
-				if constantNP == False:
-					alive.append(data['alive'][i].sum())
-				else:
-					predated.append(data['deathCount'][i])
+				alive.append(data['alive'][i].sum())
 				lastPlot = data['t'][i]
 
-	if constantNP == False:
-		alive = np.array(alive).reshape(len(time), 1)
-	else:
-		predated = np.array(predated).reshape(len(time), 1)
+
+	alive = np.array(alive).reshape(len(alive), 1)
 	time = np.array(time).reshape(len(time), 1)
 
-	if constantNP == False:
-		data = np.append(time, alive, axis = 1)
-	else:
-		data = np.append(time, predated, axis = 1)
+	data = np.append(time, alive, axis = 1)
 	data = data.tolist()
 	data2 = sorted(data, key=lambda x : x[0])
 	data2 = np.array(data2)
@@ -91,10 +77,7 @@ for group in sorted(glob('group*[0-9]*')):
 	j +=1
 plt.colorbar(CS3)
 plt.xlabel('Time', fontsize = 18)
-if constantNP == False:
-	plt.ylabel('$N(t)$', fontsize = 18)
-else:
-	plt.ylabel('$P(t)$', fontsize = 18)
+plt.ylabel('$N(t)$', fontsize = 18)
 plt.savefig('./groupPredation')
 
 
