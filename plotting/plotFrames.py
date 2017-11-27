@@ -106,6 +106,7 @@ for dataName in files:
 
 	if dataName == files[0]:
 		data['t'] = np.copy(h5f['t'])[0:itime]
+		data['alive'] = np.copy(h5f['alive'])[0:itime]
 		data['sheep'] = np.copy(h5f['sheep'])[0:itime]
 		data['sheepVel'] = np.copy(h5f['sheepVel'])[0:itime]
 		data['dog'] = np.copy(h5f['dog'])[0:itime]
@@ -114,6 +115,7 @@ for dataName in files:
 			data['interactingSheep'] = data['interactingSheep'][0:itime]
 	else:
 		data['t'] = np.copy(h5f['t'])[4:itime]
+		data['alive'] = np.copy(h5f['alive'])[0:itime]
 		data['sheep'] = np.copy(h5f['sheep'])[4:itime]
 		data['sheepVel'] = np.copy(h5f['sheepVel'])[4:itime]
 		data['dog'] = np.copy(h5f['dog'])[4:itime]
